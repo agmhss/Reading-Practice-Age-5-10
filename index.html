@@ -1,772 +1,196 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>SAP — Smart Adaptive Reader (AI Vision + Admin)</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Smart Adaptive Reading Program (SAP)</title>
 <style>
-  :root {
-    --bg:#f6f8fb; --card:#ffffff; --accent:#2563eb; --muted:#6b7280;
-    --success:#16a34a; --danger:#dc2626;
+  body {
+    font-family: "Comic Sans MS", sans-serif;
+    background: #f8fbff;
+    text-align: center;
+    margin: 0;
+    padding: 0;
   }
-  body{
-    font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
-    margin:0; padding:18px; background:var(--bg); color:#082032;
-    -webkit-font-smoothing:antialiased;
+  header {
+    background: #4b8bff;
+    color: white;
+    padding: 15px;
+    font-size: 22px;
+    font-weight: bold;
   }
-  .wrap{ max-width:1080px; margin:0 auto; display:grid; grid-template-columns:1fr 360px; gap:18px; align-items:start;}
-  header{ display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;}
-  h1{ font-size:1.1rem; margin:0;}
-  .panel{ background:var(--card); border-radius:12px; padding:14px; box-shadow:0 8px 24px rgba(8,16,36,0.06);}
-  .main{ padding:14px; min-height:520px;}
-  .side{ padding:14px; min-height:520px; }
-  .visual{ border-radius:10px; background:linear-gradient(180deg,#fff,#f3f7ff); padding:12px; min-height:240px; display:flex; flex-direction:column; gap:8px; align-items:center; justify-content:center; }
-  img.preview{ max-width:100%; max-height:180px; border-radius:8px; object-fit:contain; background:transparent; }
-  .lines{ background:#fafcff; padding:8px; border-radius:8px; width:100%; min-height:84px; font-size:1.05rem; line-height:1.4;}
-  .controls{ display:flex; gap:8px; margin-top:10px; flex-wrap:wrap;}
-  button{ background:var(--accent); color:white; border:0; padding:8px 10px; border-radius:8px; cursor:pointer; font-weight:600; }
-  .btn-ghost{ background:transparent; color:var(--accent); border:1px solid rgba(37,99,235,0.12); box-shadow:none; }
-  .btn-danger{ background:var(--danger); }
-  .small{ color:var(--muted); font-size:0.92rem;}
-  label{ display:block; margin-bottom:6px; font-size:0.9rem;}
-  input[type="file"]{ display:block; }
-  input[type="text"], select { padding:8px; border-radius:8px; border:1px solid #e6eefc; width:100%; box-sizing:border-box; }
-  .admin-section{ display:flex; gap:8px; align-items:center; margin-top:8px; }
-  .list{ max-height:300px; overflow:auto; margin-top:12px; }
-  .item{ display:flex; gap:8px; align-items:center; border-radius:8px; padding:8px; border:1px solid #f1f5f9; background:white; margin-bottom:8px;}
-  .item img{ width:48px; height:48px; object-fit:cover; border-radius:6px; }
-  .item .meta{ flex:1; }
-  .chip{ padding:6px 8px; border-radius:8px; background:#f8fafc; font-size:0.85rem; color:var(--muted); }
-  .qbox{ margin-top:12px; }
-  .choices{ display:flex; gap:8px; flex-wrap:wrap; margin-top:8px;}
-  .choice{ padding:8px 10px; border-radius:8px; min-width:120px; text-align:center; border:1px solid #eef2ff; background:white; cursor:pointer;}
-  .choice.correct{ border-color:var(--success); box-shadow:0 6px 18px rgba(22,163,74,0.06); }
-  .choice.wrong{ border-color:var(--danger); box-shadow:0 6px 18px rgba(220,38,38,0.06); }
-  footer{ margin-top:12px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;}
-  .muted{ color:var(--muted); font-size:0.9rem; }
-  .hidden{ display:none !important; }
-  @media (max-width:980px){
-    .wrap{ grid-template-columns:1fr; }
-    .side{ order: -1; }
+  #main {
+    margin-top: 20px;
+  }
+  img {
+    width: 200px;
+    height: 200px;
+    border-radius: 15px;
+    border: 3px solid #ccc;
+  }
+  .sentence {
+    font-size: 20px;
+    margin: 10px;
+  }
+  button {
+    font-size: 18px;
+    margin: 10px;
+    padding: 8px 16px;
+    border: none;
+    background: #4b8bff;
+    color: white;
+    border-radius: 10px;
+  }
+  button:hover {
+    background: #3366cc;
+  }
+  #certificate, #hallOfFame {
+    display: none;
+    padding: 20px;
+    background: white;
+    margin: 20px auto;
+    width: 90%;
+    max-width: 500px;
+    border: 10px solid transparent;
+    border-image: linear-gradient(45deg, #ff99cc, #99ccff, #ccff99, #ffcc99);
+    border-image-slice: 1;
+    border-radius: 20px;
+  }
+  #certificate h2 {
+    margin: 0;
+    color: #4b8bff;
+  }
+  .field {
+    margin: 8px;
   }
 </style>
 </head>
 <body>
-  <header style="max-width:1080px;margin:0 auto 8px;display:flex;align-items:center;justify-content:space-between;">
-    <h1>SAP — Smart Adaptive Reader (AI Vision + Admin)</h1>
-    <div class="small">Local demo • Chrome recommended</div>
-  </header>
 
-  <div class="wrap" role="main">
-    <!-- Main exercise area -->
-    <div class="panel main" id="mainPanel" aria-live="polite">
-      <div class="visual" id="visual">
-        <img id="previewImg" class="preview" alt="exercise image" src="" />
-        <div class="lines" id="linesArea" aria-label="lines to read"></div>
-        <div style="width:100%; display:flex; justify-content:space-between; align-items:center; gap:8px;">
-          <div class="small" id="wordLabel">—</div>
-          <div class="small" id="status">Ready</div>
-        </div>
+<header>🌈 Smart Adaptive Reading Program (SAP)</header>
 
-        <div class="controls" style="margin-top:8px;">
-          <button id="playBtn">▶ Play</button>
-          <button id="ttsBtn" class="btn-ghost">TTS</button>
-          <button id="startRead" class="btn-ghost">Start Reading (Mic)</button>
-          <button id="manualRead" class="btn-ghost">I Read (type)</button>
-          <div style="flex:1"></div>
-          <label style="margin:0;">
-            Voice
-            <select id="voiceSelect"></select>
-          </label>
-        </div>
+<div id="main">
+  <img id="itemImage" src="" alt="object">
+  <div id="textArea" class="sentence"></div>
+  <button onclick="playReading()">🔊 Play</button>
+  <button onclick="nextSentence()">Next Line</button>
+  <button onclick="askQuestion()">Ask Question</button>
+  <div id="question" class="sentence"></div>
+  <button id="nextExerciseBtn" onclick="nextExercise()" style="display:none;">Next Exercise</button>
+</div>
 
-        <div style="width:100%; margin-top:10px; display:flex; gap:8px; align-items:center;">
-          <button id="recordBtn" class="btn-ghost">Record Mom's Voice</button>
-          <button id="playRecorded" class="btn-ghost hidden">Play Recorded</button>
-          <button id="clearRecorded" class="btn-ghost hidden">Clear</button>
-          <div style="flex:1"></div>
-          <div class="chip" id="scoreBox">Score: 0</div>
-        </div>
-      </div>
+<!-- Certificate Section -->
+<div id="certificate">
+  <h2 id="schoolName">My Lovely School</h2>
+  <h3>Certificate of Achievement</h3>
+  <p>This certificate is awarded to</p>
+  <input class="field" type="text" id="studentName" placeholder="Student Name"><br>
+  <input class="field" type="text" id="studentClass" placeholder="Class"><br>
+  <input class="field" type="text" id="studentSection" placeholder="Section"><br>
+  <p>For successfully completing the Reading Program 🎉</p>
+  <button onclick="saveCertificate()">Save & Add to Hall of Fame</button>
+</div>
 
-      <div class="qbox" id="questionBox" style="margin-top:12px;"></div>
+<!-- Hall of Fame -->
+<div id="hallOfFame">
+  <h3>🏆 Hall of Fame 🏆</h3>
+  <ul id="fameList"></ul>
+</div>
 
-      <footer>
-        <div class="muted" id="helpText">Listen → Read aloud → Answer the question. Correct moves to a random next exercise.</div>
-        <div style="display:flex; gap:8px;">
-          <button id="nextBtn" class="btn-ghost">Next</button>
-          <button id="resetBtn" class="btn-ghost">Reset Exercises</button>
-        </div>
-      </footer>
-    </div>
-
-    <!-- Side admin / list -->
-    <div class="panel side">
-      <div style="display:flex; justify-content:space-between; align-items:center;">
-        <div><strong>Admin: Add / Manage</strong><div class="small">Upload or type a word</div></div>
-        <div class="small">Saved in browser</div>
-      </div>
-
-      <div style="margin-top:12px;">
-        <label>Upload image (optional)</label>
-        <input type="file" id="imgUpload" accept="image/*" />
-        <label style="margin-top:8px;">Or type word (example: "apple")</label>
-        <input type="text" id="wordInput" placeholder="Type a word (e.g., apple, kite)" />
-        <div class="admin-section">
-          <button id="addBtn">Add Exercise</button>
-          <button id="scanBtn" class="btn-ghost">Identify (vision)</button>
-        </div>
-        <div class="small" style="margin-top:6px;">
-          If you upload an image and press <em>Add</em>, the app will try to identify the main object (mobileNet) and generate lines automatically.
-          If you only provide a word, the app will fetch a related image (Unsplash) and create the exercise.
-        </div>
-      </div>
-
-      <div class="list" id="exerciseList" aria-live="polite"></div>
-
-      <div style="margin-top:12px;">
-        <strong>Model</strong>
-        <div class="small">MobileNet (TensorFlow.js) is used for object recognition. This loads when needed.</div>
-        <div style="margin-top:8px;">
-          <button id="loadModelBtn" class="btn-ghost">Load Vision Model</button>
-          <div class="small" id="modelStatus">Model not loaded</div>
-        </div>
-        <div style="margin-top:12px;">
-          <small class="muted">Note: Speech recognition is best in Chrome. Recorded mom audio stored locally (base64 in localStorage).</small>
-        </div>
-      </div>
-
-    </div>
-  </div>
-
-<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.11.0/dist/tf.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/mobilenet@3.1.0/dist/mobilenet.min.js"></script>
 <script>
-/* SAP Full Implementation
- * - Exercises stored in localStorage under "sap_exercises"
- * - Each exercise: {id, word, lines[], imageDataURL (or imageURL), recordedAudio (optional)}
- * - Vision: MobileNet (client-side) to infer labels from uploaded images
- * - Word mode: fetch image using source.unsplash.com (no API key). If offline, fallback placeholder.
- * - TTS: speechSynthesis (voice selection)
- * - Speech recognition: webkitSpeechRecognition / SpeechRecognition (Chrome)
- *
- * IMPORTANT: This is a demo. Storing many recordings in localStorage can exhaust quota.
- */
+const exercises = [
+  "jet", "jelly", "key", "kite", "leaf", "lorry",
+  "ball", "cat", "dog", "fish", "apple", "grape",
+  "cup", "hat", "nest", "orange", "pen", "sun",
+  "train", "zebra"
+];
 
-/* -------------------------
-   Helper & app state
-   ------------------------- */
-const STORAGE_KEY = 'sap_exercises_v1';
-let exercises = []; // loaded from storage
-let current = null;
-let prevId = null;
-let score = 0;
-const previewImg = document.getElementById('previewImg');
-const linesArea = document.getElementById('linesArea');
-const wordLabel = document.getElementById('wordLabel');
-const modelStatus = document.getElementById('modelStatus');
-const exerciseList = document.getElementById('exerciseList');
-const questionBox = document.getElementById('questionBox');
-const statusEl = document.getElementById('status');
-const scoreBox = document.getElementById('scoreBox');
+let currentIndex = 0;
+let sentenceStage = 0;
 
-const voiceSelect = document.getElementById('voiceSelect');
-const loadModelBtn = document.getElementById('loadModelBtn');
-let mobilenetModel = null;
+const imageElement = document.getElementById("itemImage");
+const textArea = document.getElementById("textArea");
+const questionArea = document.getElementById("question");
+const nextExerciseBtn = document.getElementById("nextExerciseBtn");
 
-/* Populate voices */
-let voices = [];
-function populateVoices(){
-  voices = window.speechSynthesis.getVoices() || [];
-  voiceSelect.innerHTML = '';
-  voices.forEach((v,i)=>{
-    const opt = document.createElement('option');
-    opt.value = i;
-    opt.textContent = `${v.name} (${v.lang})${v.default ? ' — default' : ''}`;
-    voiceSelect.appendChild(opt);
-  });
-  // try choose female or english voice
-  let idx = voices.findIndex(v => /female|woman/i.test(v.name));
-  if (idx === -1) idx = voices.findIndex(v => v.lang && v.lang.startsWith('en'));
-  if (idx >= 0) voiceSelect.value = idx;
-}
-window.speechSynthesis.onvoiceschanged = populateVoices;
-setTimeout(populateVoices, 500);
-
-/* load exercises from storage */
-function loadExercises(){
-  try{
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (raw) exercises = JSON.parse(raw);
-    else {
-      // create demo default items if empty
-      exercises = [
-        makeExerciseObj('jet', null),
-        makeExerciseObj('jelly', null),
-        makeExerciseObj('key', null),
-        makeExerciseObj('kite', null),
-        makeExerciseObj('leaf', null),
-        makeExerciseObj('lorry', null)
-      ];
-      // Note: images will be fetched lazily for word-based items
-    }
-  } catch(e){
-    console.error('loadExercises', e);
-    exercises = [];
-  }
-  saveExercises(); // normalize storage
-  renderExerciseList();
-}
-function saveExercises(){
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(exercises));
+function loadExercise() {
+  const word = exercises[currentIndex];
+  imageElement.src = `images/${word}.jpg`;
+  sentenceStage = 0;
+  questionArea.textContent = "";
+  nextExerciseBtn.style.display = "none";
+  textArea.textContent = word;
 }
 
-/* make common lines for a word */
-function makeLines(word){
-  const w = word.trim();
-  return [w, `my ${w}`, `my big ${w}`, `This is my big ${w}.`];
+function nextSentence() {
+  const word = exercises[currentIndex];
+  sentenceStage++;
+  if (sentenceStage === 1) textArea.textContent = "my " + word;
+  else if (sentenceStage === 2) textArea.textContent = "my big " + word;
+  else if (sentenceStage === 3) textArea.textContent = "This is my big " + word + ".";
+  else nextExerciseBtn.style.display = "inline";
 }
 
-/* exercise factory */
-function makeId(word){
-  return `${word.replace(/\s+/g,'_').toLowerCase()}_${Date.now().toString(36).slice(-5)}`;
-}
-function makeExerciseObj(word, imageDataURL){
-  const id = makeId(word || 'item');
-  return {
-    id,
-    word: word || 'item',
-    lines: makeLines(word || 'item'),
-    imageDataURL: imageDataURL || null,
-    imageURL: imageDataURL ? null : null,
-    recordedAudioKey: null // key in localStorage for recorded audio if recorded
-  };
+function playReading() {
+  const utterance = new SpeechSynthesisUtterance(textArea.textContent);
+  utterance.rate = 0.7; // slow speed
+  utterance.pitch = 1;
+  window.speechSynthesis.speak(utterance);
 }
 
-/* -------------------------
-   UI: Admin actions
-   ------------------------- */
-const imgUpload = document.getElementById('imgUpload');
-const wordInput = document.getElementById('wordInput');
-const addBtn = document.getElementById('addBtn');
-const scanBtn = document.getElementById('scanBtn');
-const loadModelButton = document.getElementById('loadModelBtn');
-
-imgUpload.addEventListener('change', (ev) => {
-  // preview local image immediately
-  const f = ev.target.files[0];
-  if (!f) return;
-  const reader = new FileReader();
-  reader.onload = (e) => previewImg.src = e.target.result;
-  reader.readAsDataURL(f);
-});
-
-// load model
-loadModelBtn.addEventListener('click', async () => {
-  modelStatus.textContent = 'Loading model...';
-  try{
-    mobilenetModel = await mobilenet.load({version:2, alpha:1.0});
-    modelStatus.textContent = 'Model loaded (MobileNet)';
-  } catch(e){
-    modelStatus.textContent = 'Model failed to load';
-    console.error(e);
-  }
-});
-
-// identify image using model (returns top label or null)
-async function identifyImageFromFile(file){
-  if (!mobilenetModel){
-    modelStatus.textContent = 'Model not loaded — click "Load Vision Model"';
-    return null;
-  }
-  const img = await loadImageElementFromFile(file);
-  const predictions = await mobilenetModel.classify(img);
-  // take top prediction's className and normalize to single word
-  if (predictions && predictions.length){
-    // className can be "sports car" etc. pick first token
-    const top = predictions[0].className;
-    return top.split(',')[0].split(' ')[0]; // basic normalization
-  }
-  return null;
+function askQuestion() {
+  const word = exercises[currentIndex];
+  const questions = [
+    `What is this?`,
+    `Can you say ${word}?`,
+    `What color is the ${word}?`,
+    `Do you like this ${word}?`
+  ];
+  questionArea.textContent = questions[Math.floor(Math.random() * questions.length)];
 }
 
-/* helper to create Image element from File */
-function loadImageElementFromFile(file){
-  return new Promise((res, rej)=>{
-    const fr = new FileReader();
-    fr.onload = (e) =>{
-      const img = new Image();
-      img.onload = () => res(img);
-      img.onerror = rej;
-      img.src = e.target.result;
-    };
-    fr.onerror = rej;
-    fr.readAsDataURL(file);
-  });
-}
-
-/* add exercise flow */
-addBtn.addEventListener('click', async () => {
-  const f = imgUpload.files && imgUpload.files[0];
-  const word = (wordInput.value || '').trim();
-  if (!f && !word){
-    alert('Please upload an image or type a word.');
-    return;
-  }
-  // If file present, read it as dataURL
-  let dataURL = null;
-  let chosenWord = word || null;
-  if (f){
-    dataURL = await fileToDataURL(f);
-    // if no typed word, optionally try to auto-identify via model
-    if (!chosenWord && mobilenetModel){
-      modelStatus.textContent = 'Identifying image...';
-      try{
-        const label = await identifyImageFromFile(f);
-        if (label) chosenWord = label;
-        modelStatus.textContent = 'Identified: ' + (label || 'unknown');
-      } catch(e){
-        modelStatus.textContent = 'Identify failed';
-        console.error(e);
-      }
-    }
-    if (!chosenWord){
-      // fallback: ask admin
-      const q = prompt('Type a word to describe the uploaded image (example: kite):');
-      if (!q) {
-        alert('Word required to create exercise when image cannot be auto-identified.');
-        return;
-      }
-      chosenWord = q.trim();
-    }
+function nextExercise() {
+  currentIndex++;
+  if (currentIndex >= exercises.length) {
+    showCertificate();
   } else {
-    // only a word typed - fetch an image from Unsplash Source
-    chosenWord = word;
-    dataURL = null; // we'll use imageURL instead
+    loadExercise();
   }
-
-  // create exercise object and save
-  const ex = makeExerciseObj(chosenWord, dataURL);
-  if (!dataURL){
-    ex.imageURL = `https://source.unsplash.com/400x300/?${encodeURIComponent(chosenWord)}`;
-  }
-  exercises.unshift(ex); // new on top
-  saveExercises();
-  renderExerciseList();
-  clearAdminInputs();
-  // auto-load newly added
-  loadExercise(ex.id);
-});
-
-/* scanBtn: identify uploaded image without adding */
-scanBtn.addEventListener('click', async ()=>{
-  const f = imgUpload.files && imgUpload.files[0];
-  if (!f){
-    alert('Please upload an image to identify.');
-    return;
-  }
-  if (!mobilenetModel){
-    alert('Load vision model first.');
-    return;
-  }
-  modelStatus.textContent = 'Identifying...';
-  try{
-    const label = await identifyImageFromFile(f);
-    if (label) {
-      modelStatus.textContent = 'Identified: ' + label;
-      wordInput.value = label;
-    } else {
-      modelStatus.textContent = 'No label found';
-    }
-  } catch(e){
-    modelStatus.textContent = 'Identify failed';
-    console.error(e);
-  }
-});
-
-function clearAdminInputs(){
-  imgUpload.value = '';
-  wordInput.value = '';
 }
 
-/* file -> dataURL */
-function fileToDataURL(file){
-  return new Promise((res,rej)=>{
-    const fr = new FileReader();
-    fr.onload = e => res(e.target.result);
-    fr.onerror = rej;
-    fr.readAsDataURL(file);
+function showCertificate() {
+  document.getElementById("main").style.display = "none";
+  document.getElementById("certificate").style.display = "block";
+}
+
+function saveCertificate() {
+  const name = document.getElementById("studentName").value.trim();
+  const cls = document.getElementById("studentClass").value.trim();
+  const section = document.getElementById("studentSection").value.trim();
+
+  if (!name) { alert("Please enter your name."); return; }
+
+  const fameList = JSON.parse(localStorage.getItem("fameList") || "[]");
+  fameList.push({ name, cls, section });
+  localStorage.setItem("fameList", JSON.stringify(fameList));
+
+  showHallOfFame();
+}
+
+function showHallOfFame() {
+  document.getElementById("certificate").style.display = "none";
+  document.getElementById("hallOfFame").style.display = "block";
+  const fameList = JSON.parse(localStorage.getItem("fameList") || "[]");
+  const fameListElement = document.getElementById("fameList");
+  fameListElement.innerHTML = "";
+  fameList.forEach(entry => {
+    const li = document.createElement("li");
+    li.textContent = `${entry.name} – Class ${entry.cls} (${entry.section})`;
+    fameListElement.appendChild(li);
   });
 }
 
-/* render exercise list */
-function renderExerciseList(){
-  exerciseList.innerHTML = '';
-  if (!exercises.length){
-    exerciseList.innerHTML = '<div class="small">No exercises — add some above.</div>';
-    return;
-  }
-  exercises.forEach(ex => {
-    const item = document.createElement('div');
-    item.className = 'item';
-    const img = document.createElement('img');
-    img.alt = ex.word;
-    img.src = ex.imageDataURL || ex.imageURL || placeholderDataURL();
-    const meta = document.createElement('div');
-    meta.className = 'meta';
-    meta.innerHTML = `<div><strong>${escapeHtml(ex.word)}</strong></div><div class="small">${ex.lines[ex.lines.length-1]}</div>`;
-    const btns = document.createElement('div');
-    btns.style.display='flex';
-    btns.style.gap='6px';
-    const loadBtn = document.createElement('button');
-    loadBtn.className='btn-ghost';
-    loadBtn.textContent='Load';
-    loadBtn.onclick = ()=> loadExercise(ex.id);
-    const delBtn = document.createElement('button');
-    delBtn.className='btn-ghost';
-    delBtn.textContent='Delete';
-    delBtn.onclick = ()=> {
-      if (!confirm('Delete this exercise?')) return;
-      exercises = exercises.filter(x=> x.id !== ex.id);
-      saveExercises();
-      renderExerciseList();
-      if (current && current.id === ex.id) {
-        current = null; loadRandom();
-      }
-    };
-    btns.appendChild(loadBtn); btns.appendChild(delBtn);
-    item.appendChild(img); item.appendChild(meta); item.appendChild(btns);
-    exerciseList.appendChild(item);
-  });
-}
-
-/* placeholder transparent SVG dataURL */
-function placeholderDataURL(){
-  return 'data:image/svg+xml;utf8,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="400" height="300"><rect width="100%" height="100%" fill="#f3f7ff"/><text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" fill="#94a3b8" font-size="20">no image</text></svg>');
-}
-
-/* -------------------------
-   Core: load & render exercise
-   ------------------------- */
-function loadExercise(id){
-  const ex = exercises.find(e=> e.id === id);
-  if (!ex) return;
-  current = ex;
-  prevId = ex.id;
-  renderCurrent();
-}
-function renderCurrent(){
-  if (!current) {
-    linesArea.innerHTML = 'No exercise loaded.';
-    previewImg.src = placeholderDataURL();
-    wordLabel.textContent = '—';
-    questionBox.innerHTML = '';
-    return;
-  }
-  previewImg.src = current.imageDataURL || current.imageURL || placeholderDataURL();
-  linesArea.innerHTML = current.lines.map(l=> `<div>${escapeHtml(l)}</div>`).join('');
-  wordLabel.textContent = current.word;
-  questionBox.innerHTML = '';
-  statusEl.textContent = 'Ready — Listen then read';
-  // show recorded audio buttons if exist
-  const ra = localStorage.getItem('rec_audio_' + current.id);
-  toggleRecordedControls(!!ra);
-}
-function toggleRecordedControls(has){
-  const playRecorded = document.getElementById('playRecorded');
-  const clearRecorded = document.getElementById('clearRecorded');
-  if (has){
-    playRecorded.classList.remove('hidden');
-    clearRecorded.classList.remove('hidden');
-  } else {
-    playRecorded.classList.add('hidden');
-    clearRecorded.classList.add('hidden');
-  }
-}
-
-/* pick a random exercise (avoid immediate repeat) */
-function loadRandom(){
-  if (!exercises.length) return;
-  let pool = exercises.slice();
-  if (prevId && pool.length>1) pool = pool.filter(e=> e.id !== prevId);
-  const pick = pool[Math.floor(Math.random()*pool.length)];
-  loadExercise(pick.id);
-}
-
-/* -------------------------
-   Reading evaluation & Qs
-   ------------------------- */
-function normalize(s){ return (s||'').toLowerCase().replace(/[^a-z\s]/g,'').trim(); }
-function matchScore(expected, actual){
-  const e = normalize(expected).split(/\s+/).filter(Boolean);
-  const a = normalize(actual).split(/\s+/).filter(Boolean);
-  if (!e.length) return 0;
-  let match=0;
-  const aSet = new Set(a);
-  e.forEach(w => { if (aSet.has(w)) match++; });
-  return match / e.length;
-}
-
-/* generate simple question object from word */
-function generateQuestionFor(word){
-  // Basic 'What is this?' with 3 choices (one correct)
-  const correct = word;
-  // build simple distractors from other exercises or common words
-  let pool = exercises.map(e => e.word).filter(w => w !== word);
-  const common = ['apple','ball','cat','dog','car','kite','leaf','key','truck','boat','jelly'];
-  pool = pool.concat(common).filter((v,i,s)=> s.indexOf(v)===i && v !== word);
-  // pick two distractors
-  const shuffle = arr => arr.sort(()=> Math.random()-0.5);
-  pool = shuffle(pool);
-  const choices = [correct];
-  for (let i=0;i<2 && i<pool.length;i++) choices.push(pool[i]);
-  // shuffle final choices
-  const final = shuffle(choices);
-  const answerIndex = final.indexOf(correct);
-  return { q: 'What is this?', choices: final, answer: answerIndex };
-}
-
-/* show question UI */
-function showQuestionUI(){
-  if (!current) return;
-  const qobj = generateQuestionFor(current.word);
-  questionBox.innerHTML = `<strong>Question:</strong><div style="margin-top:6px">${escapeHtml(qobj.q)}</div>`;
-  const choicesDiv = document.createElement('div'); choicesDiv.className='choices';
-  qobj.choices.forEach((c,i) => {
-    const ch = document.createElement('div');
-    ch.className='choice';
-    ch.innerText = c;
-    ch.onclick = ()=>{
-      // mark
-      Array.from(choicesDiv.children).forEach(x => x.classList.remove('correct','wrong'));
-      if (i === qobj.answer){
-        ch.classList.add('correct');
-        statusEl.textContent = 'Correct! +1';
-        score++;
-        scoreBox.textContent = 'Score: '+score;
-        // small delay then load random next
-        setTimeout(()=> loadRandom(), 1000);
-      } else {
-        ch.classList.add('wrong');
-        statusEl.textContent = 'Not correct — try again or press Next';
-      }
-    };
-    choicesDiv.appendChild(ch);
-  });
-  questionBox.appendChild(choicesDiv);
-}
-
-/* -------------------------
-   Playback: TTS & recorded audio
-   ------------------------- */
-function speakText(text, useVoice=true, rate=1){
-  if (!('speechSynthesis' in window)){
-    alert('TTS not available');
-    return;
-  }
-  window.speechSynthesis.cancel();
-  const utter = new SpeechSynthesisUtterance(text);
-  if (useVoice && voices.length){
-    const idx = parseInt(voiceSelect.value) || 0;
-    if (voices[idx]) utter.voice = voices[idx];
-  }
-  utter.rate = rate;
-  window.speechSynthesis.speak(utter);
-}
-
-/* play lines: prefer recorded audio if present */
-function playLines(){
-  if (!current) return;
-  const key = 'rec_audio_' + current.id;
-  const data = localStorage.getItem(key);
-  if (data){
-    const a = new Audio(data);
-    a.play();
-    statusEl.textContent = 'Playing recorded audio';
-    a.onended = ()=> statusEl.textContent = 'Ready';
-  } else {
-    speakText(current.lines.join(' '), true, 1);
-  }
-}
-
-/* Play TTS (explicit) */
-document.getElementById('ttsBtn').addEventListener('click', ()=>{
-  if (!current) return;
-  speakText(current.lines.join(' '), true, 1);
-});
-
-/* Play main play */
-document.getElementById('playBtn').addEventListener('click', ()=>{
-  playLines();
-});
-
-/* next button */
-document.getElementById('nextBtn').addEventListener('click', ()=> loadRandom());
-
-/* Reset exercises (clear storage and reload defaults) */
-document.getElementById('resetBtn').addEventListener('click', ()=>{
-  if (!confirm('Clear saved exercises and reset to defaults?')) return;
-  localStorage.removeItem(STORAGE_KEY);
-  localStorage.removeItem('sap_exercises_v1');
-  loadExercises();
-  loadRandom();
-});
-
-/* -------------------------
-   Record mom's voice using MediaRecorder
-   ------------------------- */
-let mediaRecorder = null;
-let recordedChunks = [];
-document.getElementById('recordBtn').addEventListener('click', async ()=>{
-  if (!current) { alert('Load an exercise first'); return; }
-  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia){
-    alert('Recording unsupported in this browser');
-    return;
-  }
-  if (!mediaRecorder || mediaRecorder.state === 'inactive'){
-    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-    mediaRecorder = new MediaRecorder(stream);
-    recordedChunks = [];
-    mediaRecorder.ondataavailable = e => { if (e.data.size) recordedChunks.push(e.data); };
-    mediaRecorder.onstop = async () => {
-      const blob = new Blob(recordedChunks, { type: 'audio/webm' });
-      const dataURL = await blobToDataURL(blob);
-      localStorage.setItem('rec_audio_' + current.id, dataURL);
-      toggleRecordedControls(true);
-      statusEl.textContent = 'Recording saved';
-    };
-    mediaRecorder.start();
-    document.getElementById('recordBtn').textContent = 'Stop recording';
-    document.getElementById('recordBtn').classList.add('btn-danger');
-    statusEl.textContent = 'Recording...';
-  } else if (mediaRecorder.state === 'recording'){
-    mediaRecorder.stop();
-    document.getElementById('recordBtn').textContent = "Record Mom's Voice";
-    document.getElementById('recordBtn').classList.remove('btn-danger');
-  }
-});
-function blobToDataURL(blob){ return new Promise((res,rej)=>{ const r=new FileReader(); r.onload=()=>res(r.result); r.onerror=rej; r.readAsDataURL(blob); }); }
-document.getElementById('playRecorded').addEventListener('click', ()=>{
-  if (!current) return;
-  const d = localStorage.getItem('rec_audio_' + current.id);
-  if (!d) { alert('No recorded audio'); return; }
-  const a = new Audio(d);
-  a.play();
-  statusEl.textContent = 'Playing recorded audio';
-  a.onended = ()=> statusEl.textContent = 'Ready';
-});
-document.getElementById('clearRecorded').addEventListener('click', ()=>{
-  if (!current) return;
-  localStorage.removeItem('rec_audio_' + current.id);
-  toggleRecordedControls(false);
-  statusEl.textContent = 'Cleared recorded audio';
-});
-
-/* -------------------------
-   Speech Recognition (child reading)
-   ------------------------- */
-let recognition = null;
-let recognizing = false;
-function setupRecognition(){
-  const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
-  if (!SpeechRec){
-    document.getElementById('startRead').disabled = true;
-    statusEl.textContent = 'Speech recognition disabled (use manual)';
-    return;
-  }
-  recognition = new SpeechRec();
-  recognition.lang = 'en-US';
-  recognition.interimResults = false;
-  recognition.maxAlternatives = 1;
-  recognition.onstart = ()=> { recognizing = true; statusEl.textContent = 'Listening...'; };
-  recognition.onerror = (e)=> { recognizing=false; statusEl.textContent = 'Recognition error: ' + (e.error || 'unknown'); };
-  recognition.onend = ()=> { recognizing=false; if (statusEl.textContent === 'Listening...') statusEl.textContent = 'Ready'; };
-  recognition.onresult = (ev)=>{
-    const transcript = ev.results[0][0].transcript;
-    statusEl.textContent = `Heard: "${transcript}"`;
-    const expected = current.lines[current.lines.length -1];
-    const scoreMatch = matchScore(expected, transcript);
-    if (scoreMatch >= 0.7){
-      statusEl.textContent = `Good reading (${Math.round(scoreMatch*100)}%)`;
-      showQuestionUI();
-    } else {
-      statusEl.textContent = `Try again — I heard: "${transcript}" (${Math.round(scoreMatch*100)}%)`;
-    }
-  };
-}
-setupRecognition();
-
-document.getElementById('startRead').addEventListener('click', ()=>{
-  if (!current){ alert('Load an exercise first'); return; }
-  if (!recognition) { alert('SpeechRecognition not supported in this browser. Use manual read.'); return; }
-  try { recognition.start(); } catch(e){ console.warn(e); }
-});
-
-/* manual read */
-document.getElementById('manualRead').addEventListener('click', ()=>{
-  if (!current) { alert('Load an exercise first'); return; }
-  const typed = prompt('Type what the child read (or click Cancel):', current.lines[current.lines.length-1]);
-  if (!typed) return;
-  const sc = matchScore(current.lines[current.lines.length-1], typed);
-  if (sc >= 0.7){
-    statusEl.textContent = 'Good manual read — showing question';
-    showQuestionUI();
-  } else {
-    statusEl.textContent = 'Not close enough — please try again';
-  }
-});
-
-/* -------------------------
-   Utilities & startup
-   ------------------------- */
-function escapeHtml(s){ return (s||'').toString().replace(/[&<>"']/g,c=> ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":"&#39;"}[c])); }
-
-function init(){
-  loadExercises();
-  // load first random
-  loadRandom();
-  populateVoices();
-  setTimeout(populateVoices, 800);
-}
-init();
-
-/* listen to loadModel button (alias) */
-loadModelButton.addEventListener('click', async ()=>{
-  loadModelBtn.click();
-});
-
-/* small utility: when preview image loaded after admin upload, optionally run mobilenet to suggest label */
-imgUpload.addEventListener('change', async (ev)=>{
-  const f = ev.target.files && ev.target.files[0];
-  if (!f) return;
-  // preview already handled in upload change event above; optionally identify if model loaded
-  if (mobilenetModel){
-    // try identify and prefill word input
-    modelStatus.textContent = 'Identifying preview...';
-    try{
-      const label = await identifyImageFromFile(f);
-      if (label) {
-        wordInput.value = label;
-        modelStatus.textContent = 'Identified: ' + label;
-      } else modelStatus.textContent = 'No label';
-    } catch(e){
-      modelStatus.textContent = 'Identify failed';
-      console.error(e);
-    }
-  }
-});
-
-/* Save recorded audio key per exercise? we store under rec_audio_<id> in localStorage. */
-
-/* Ensure exercise list UI clickable to load items; already implemented in renderExerciseList */
-
-/* Safety: avoid large localStorage by warning when recording */
-(function patchRecordWarning(){
-  const orig = document.getElementById('recordBtn');
-  // add small tooltip
-  orig.title = "Record short sample; storing many recordings may fill browser storage.";
-})();
-
+window.onload = loadExercise;
 </script>
 </body>
 </html>
