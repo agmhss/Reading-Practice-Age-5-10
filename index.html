@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>Smart Adaptive Reading Program (SAP)</title>
 <style>
   body {
@@ -19,50 +19,30 @@
     font-size: 22px;
     font-weight: bold;
   }
-  #main {
-    margin-top: 20px;
-  }
+  #main { margin-top: 20px; }
   img {
-    width: 200px;
-    height: 200px;
+    width: 200px; height: 200px;
     border-radius: 15px;
     border: 3px solid #ccc;
+    object-fit: cover;
+    background:#fff;
   }
-  .sentence {
-    font-size: 20px;
-    margin: 10px;
-  }
+  .sentence { font-size: 20px; margin: 10px; }
   button {
-    font-size: 18px;
-    margin: 10px;
-    padding: 8px 16px;
-    border: none;
-    background: #4b8bff;
-    color: white;
-    border-radius: 10px;
+    font-size: 18px; margin: 10px; padding: 8px 16px;
+    border: none; background: #4b8bff; color: white; border-radius: 10px;
+    cursor: pointer;
   }
-  button:hover {
-    background: #3366cc;
-  }
+  button:hover { background: #3366cc; }
   #certificate, #hallOfFame {
-    display: none;
-    padding: 20px;
-    background: white;
-    margin: 20px auto;
-    width: 90%;
-    max-width: 500px;
+    display: none; padding: 20px; background: white;
+    margin: 20px auto; width: 90%; max-width: 500px;
     border: 10px solid transparent;
     border-image: linear-gradient(45deg, #ff99cc, #99ccff, #ccff99, #ffcc99);
-    border-image-slice: 1;
-    border-radius: 20px;
+    border-image-slice: 1; border-radius: 20px;
   }
-  #certificate h2 {
-    margin: 0;
-    color: #4b8bff;
-  }
-  .field {
-    margin: 8px;
-  }
+  #certificate h2 { margin: 0; color: #4b8bff; }
+  .field { margin: 8px; }
 </style>
 </head>
 <body>
@@ -98,24 +78,67 @@
 </div>
 
 <script>
+/* ------------ DATA ------------- */
 const exercises = [
-  "jet", "jelly", "key", "kite", "leaf", "lorry",
-  "ball", "cat", "dog", "fish", "apple", "grape",
-  "cup", "hat", "nest", "orange", "pen", "sun",
-  "train", "zebra"
+  "jet","jelly","key","kite","leaf","lorry",
+  "ball","cat","dog","fish","apple","grape",
+  "cup","hat","nest","orange","pen","sun",
+  "train","zebra"
 ];
 
 let currentIndex = 0;
 let sentenceStage = 0;
 
+/* ------------ DOM ------------- */
 const imageElement = document.getElementById("itemImage");
 const textArea = document.getElementById("textArea");
 const questionArea = document.getElementById("question");
 const nextExerciseBtn = document.getElementById("nextExerciseBtn");
 
+/* ------------ IMAGE HELPERS ------------- */
+/** Try jpg → png → webp; if all fail, show a placeholder SVG. */
+function setImageForWord(word) {
+  const base = `images/${word.toLowerCase()}`;
+  const candidates = [`${base}.jpg`, `${base}.png`, `${base}.webp`];
+  let i = 0;
+
+  const tryNext = () => {
+    if (i >= candidates.length) {
+      console.warn("All image candidates failed for:", word);
+      imageElement.src = svgPlaceholder(word);
+      imageElement.alt = `${word} (placeholder)`;
+      return;
+    }
+    const src = candidates[i++];
+    console.log("Trying image:", src);
+    imageElement.onerror = tryNext;
+    imageElement.onload = () => {
+      imageElement.alt = word;
+      console.log("Loaded image:", src);
+    };
+    imageElement.src = src;
+  };
+
+  tryNext();
+}
+
+/** Simple, crisp placeholder with the word centered */
+function svgPlaceholder(word) {
+  const text = encodeURIComponent(word);
+  const svg = `
+    <svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'>
+      <rect width='100%' height='100%' fill='#eef3ff'/>
+      <rect x='8' y='8' width='184' height='184' rx='16' fill='#ffffff' stroke='#cbd5e1' stroke-width='3'/>
+      <text x='50%' y='50%' dominant-baseline='middle' text-anchor='middle'
+            font-family='Arial, sans-serif' font-size='22' fill='#334155'>${word}</text>
+    </svg>`;
+  return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`;
+}
+
+/* ------------ GAME LOGIC ------------- */
 function loadExercise() {
   const word = exercises[currentIndex];
-  imageElement.src = `images/${word}.jpg`;
+  setImageForWord(word);
   sentenceStage = 0;
   questionArea.textContent = "";
   nextExerciseBtn.style.display = "none";
@@ -190,7 +213,8 @@ function showHallOfFame() {
   });
 }
 
-window.onload = loadExercise;
+/* Use DOMContentLoaded to start as soon as the DOM is ready */
+document.addEventListener("DOMContentLoaded", loadExercise);
 </script>
 </body>
 </html>
