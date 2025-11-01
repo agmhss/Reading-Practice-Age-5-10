@@ -3,270 +3,238 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Smart Adaptive Reading Program (SAP)</title>
+<title>🌈 Gtk Reading Program for Kids</title>
 <style>
   body {
-    font-family: "Comic Sans MS", "Segoe UI", sans-serif;
+    font-family: "Comic Sans MS", sans-serif;
     text-align: center;
     margin: 0;
-    background: linear-gradient(180deg, #dbeafe, #fef9c3, #ffe4e6);
+    background: linear-gradient(135deg, #c2e9fb, #a1c4fd);
     min-height: 100vh;
-    animation: bgShift 8s infinite alternate ease-in-out;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
   }
-
-  @keyframes bgShift {
-    0% { background: linear-gradient(180deg, #dbeafe, #fef9c3, #ffe4e6); }
-    100% { background: linear-gradient(180deg, #e0f2fe, #dcfce7, #fde68a); }
-  }
-
   header {
-    background: linear-gradient(90deg, #4b8bff, #7dd3fc);
-    color: white;
-    padding: 15px;
-    font-size: 22px;
+    font-size: 26px;
     font-weight: bold;
-    letter-spacing: 0.5px;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+    color: #004aad;
+    margin-bottom: 20px;
   }
-
+  #setupBox, #mainBox, #resultBox {
+    background: white;
+    padding: 25px;
+    border-radius: 20px;
+    width: 90%;
+    max-width: 420px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+  }
   img {
     width: 180px;
     height: 180px;
     object-fit: contain;
     border-radius: 20px;
-    background: white;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.2);
-    margin-top: 30px;
-    transition: transform 0.5s ease;
+    margin-top: 10px;
+    background: #fff;
   }
-
-  img:hover {
-    transform: scale(1.05);
-  }
-
   .word {
-    font-size: 26px;
+    font-size: 28px;
+    margin: 15px;
     font-weight: bold;
-    color: #374151;
-    margin: 18px;
+    color: #333;
   }
-
   button {
-    font-size: 18px;
-    border: none;
-    padding: 12px 22px;
-    margin: 8px;
-    border-radius: 14px;
-    cursor: pointer;
+    background: #4b8bff;
     color: white;
-    font-weight: bold;
-    transition: all 0.3s ease;
-    box-shadow: 0 3px 6px rgba(0,0,0,0.2);
+    border: none;
+    padding: 10px 20px;
+    border-radius: 12px;
+    font-size: 18px;
+    margin: 10px;
+    cursor: pointer;
   }
-
-  #playBtn {
-    background: linear-gradient(135deg, #34d399, #10b981);
+  button:hover { background: #3366cc; }
+  select {
+    font-size: 16px;
+    padding: 6px 10px;
+    border-radius: 8px;
+    margin-top: 10px;
   }
-
-  #nextBtn {
-    background: linear-gradient(135deg, #60a5fa, #2563eb);
-  }
-
-  button:hover {
-    transform: scale(1.08);
-    filter: brightness(1.1);
-  }
-
   #scoreBox {
     font-size: 18px;
-    margin-top: 12px;
-    color: #1e293b;
+    margin-top: 10px;
+    color: #004aad;
     font-weight: bold;
   }
-
-  #resultBox {
-    display: none;
-    background: white;
-    padding: 30px;
-    border-radius: 20px;
-    width: 85%;
-    margin: 40px auto;
-    box-shadow: 0 5px 12px rgba(0,0,0,0.25);
-    animation: fadeIn 0.8s ease-in;
-  }
-
-  #resultEmoji {
-    font-size: 50px;
-    margin-bottom: 10px;
-    animation: bounce 1.5s infinite alternate;
-  }
-
-  @keyframes bounce {
-    0% { transform: translateY(0); }
-    100% { transform: translateY(-6px); }
-  }
-
-  #resultBox h2 {
-    color: #2563eb;
-    font-size: 26px;
-  }
-
-  #resultBox p {
-    font-size: 18px;
-    color: #374151;
-  }
-
-  #restartBtn {
-    background: linear-gradient(135deg, #fbbf24, #f59e0b);
-    color: white;
-  }
-
-  @keyframes fadeIn {
-    from {opacity: 0; transform: scale(0.9);}
-    to {opacity: 1; transform: scale(1);}
-  }
+  #resultBox h2 { font-size: 26px; margin-bottom: 10px; }
+  #resultBox p { font-size: 18px; margin-bottom: 15px; }
 </style>
 </head>
-
 <body>
-  <header>🌈 Smart Adaptive Reading Program (SAP)</header>
 
-  <div id="mainBox">
-    <img id="image" src="" alt="Image" />
-    <div class="word" id="word">Loading...</div>
+<header>🌈 Gtk Reading Program for Kids</header>
 
-    <button id="playBtn">🔊 Play & Speak</button>
-    <button id="nextBtn">Next</button>
+<div id="setupBox">
+  <p><b>Select accent:</b></p>
+  <select id="accentSelect">
+    <option value="en-US">🇺🇸 English (US)</option>
+    <option value="en-GB">🇬🇧 English (UK)</option>
+    <option value="en-IN" selected>🇮🇳 English (India)</option>
+  </select><br>
+  <button onclick="startTest()">Start Test</button>
+</div>
 
-    <div id="scoreBox">Round: 1/10 | Score: 0</div>
-  </div>
+<div id="mainBox" style="display:none;">
+  <img id="itemImage" src="" alt="object">
+  <div id="wordText" class="word">...</div>
+  <div id="scoreBox">Round: 0/10 | Score: 0</div>
+</div>
 
-  <div id="resultBox">
-    <div id="resultEmoji"></div>
-    <h2>Result Summary</h2>
-    <p id="resultText"></p>
-    <button id="restartBtn" onclick="restart()">🔁 Play Again</button>
-  </div>
+<div id="resultBox" style="display:none;">
+  <h2 id="resultEmoji"></h2>
+  <p id="resultText"></p>
+  <button onclick="restartTest()">🔁 Restart Test</button>
+</div>
 
 <script>
-  // Image-word data
-  const items = [
-    { word: "dog", img: "https://cdn-icons-png.flaticon.com/512/616/616408.png" },
-    { word: "cat", img: "https://cdn-icons-png.flaticon.com/512/616/616430.png" },
-    { word: "apple", img: "https://cdn-icons-png.flaticon.com/512/415/415733.png" },
-    { word: "ball", img: "https://cdn-icons-png.flaticon.com/512/1163/1163661.png" },
-    { word: "car", img: "https://cdn-icons-png.flaticon.com/512/743/743922.png" },
-    { word: "bird", img: "https://cdn-icons-png.flaticon.com/512/1998/1998610.png" },
-    { word: "fish", img: "https://cdn-icons-png.flaticon.com/512/616/616408.png" },
-    { word: "leaf", img: "https://cdn-icons-png.flaticon.com/512/2909/2909765.png" },
-    { word: "sun", img: "https://cdn-icons-png.flaticon.com/512/869/869869.png" },
-    { word: "star", img: "https://cdn-icons-png.flaticon.com/512/1828/1828884.png" },
-    { word: "tree", img: "https://cdn-icons-png.flaticon.com/512/616/616408.png" },
-    { word: "book", img: "https://cdn-icons-png.flaticon.com/512/616/616555.png" },
-    { word: "cup", img: "https://cdn-icons-png.flaticon.com/512/869/869869.png" },
-    { word: "house", img: "https://cdn-icons-png.flaticon.com/512/616/616408.png" },
-    { word: "banana", img: "https://cdn-icons-png.flaticon.com/512/415/415733.png" },
-    { word: "orange", img: "https://cdn-icons-png.flaticon.com/512/2909/2909765.png" },
-    { word: "train", img: "https://cdn-icons-png.flaticon.com/512/743/743922.png" },
-    { word: "duck", img: "https://cdn-icons-png.flaticon.com/512/616/616408.png" },
-    { word: "hat", img: "https://cdn-icons-png.flaticon.com/512/616/616408.png" },
-    { word: "shoe", img: "https://cdn-icons-png.flaticon.com/512/869/869869.png" }
-  ];
+const items = [
+  { word: "apple", img: "https://cdn-icons-png.flaticon.com/512/415/415733.png" },
+  { word: "ball", img: "https://cdn-icons-png.flaticon.com/512/1163/1163661.png" },
+  { word: "cat", img: "https://cdn-icons-png.flaticon.com/512/616/616408.png" },
+  { word: "dog", img: "https://cdn-icons-png.flaticon.com/512/616/616408.png" },
+  { word: "fish", img: "https://cdn-icons-png.flaticon.com/512/616/616490.png" },
+  { word: "car", img: "https://cdn-icons-png.flaticon.com/512/743/743922.png" },
+  { word: "leaf", img: "https://cdn-icons-png.flaticon.com/512/2909/2909765.png" },
+  { word: "sun", img: "https://cdn-icons-png.flaticon.com/512/869/869869.png" },
+  { word: "star", img: "https://cdn-icons-png.flaticon.com/512/1828/1828884.png" },
+  { word: "tree", img: "https://cdn-icons-png.flaticon.com/512/765/765614.png" },
+  { word: "book", img: "https://cdn-icons-png.flaticon.com/512/2232/2232688.png" },
+  { word: "cup", img: "https://cdn-icons-png.flaticon.com/512/747/747830.png" },
+  { word: "house", img: "https://cdn-icons-png.flaticon.com/512/616/616408.png" },
+  { word: "banana", img: "https://cdn-icons-png.flaticon.com/512/415/415733.png" },
+  { word: "orange", img: "https://cdn-icons-png.flaticon.com/512/2909/2909765.png" },
+  { word: "train", img: "https://cdn-icons-png.flaticon.com/512/743/743922.png" },
+  { word: "duck", img: "https://cdn-icons-png.flaticon.com/512/616/616490.png" },
+  { word: "hat", img: "https://cdn-icons-png.flaticon.com/512/3434/3434793.png" },
+  { word: "shoe", img: "https://cdn-icons-png.flaticon.com/512/25/25445.png" },
+  { word: "grape", img: "https://cdn-icons-png.flaticon.com/512/766/766198.png" },
+];
 
-  let round = 0, score = 0;
-  const totalRounds = 10;
-  let recognition;
+let round = 0;
+let score = 0;
+const totalRounds = 10;
+let recognition;
+let accent = "en-IN";
 
-  const imgEl = document.getElementById("image");
-  const wordEl = document.getElementById("word");
-  const playBtn = document.getElementById("playBtn");
-  const nextBtn = document.getElementById("nextBtn");
-  const scoreBox = document.getElementById("scoreBox");
-  const resultBox = document.getElementById("resultBox");
-  const resultEmoji = document.getElementById("resultEmoji");
-  const resultText = document.getElementById("resultText");
-  const mainBox = document.getElementById("mainBox");
+const setupBox = document.getElementById("setupBox");
+const mainBox = document.getElementById("mainBox");
+const resultBox = document.getElementById("resultBox");
+const itemImage = document.getElementById("itemImage");
+const wordText = document.getElementById("wordText");
+const scoreBox = document.getElementById("scoreBox");
+const resultEmoji = document.getElementById("resultEmoji");
+const resultText = document.getElementById("resultText");
 
-  if ("webkitSpeechRecognition" in window) {
-    recognition = new webkitSpeechRecognition();
-    recognition.lang = "en-US";
-    recognition.onresult = (e) => {
-      const spoken = e.results[0][0].transcript.toLowerCase().trim();
-      const target = wordEl.textContent.toLowerCase().trim();
-      if (similarity(spoken, target) >= 0.7) {
-        score++;
-        alert("✅ Great! You said it correctly!");
-      } else {
-        alert(`❌ You said "${spoken}". Try again!`);
-      }
-      scoreBox.textContent = `Round: ${round}/${totalRounds} | Score: ${score}`;
-    };
-  }
-
-  function similarity(a,b){
-    const longer=a.length>b.length?a:b;
-    const shorter=a.length>b.length?b:a;
-    const longerLength=longer.length;
-    if(longerLength===0)return 1.0;
-    return (longerLength-editDistance(longer,shorter))/longerLength;
-  }
-  function editDistance(s1,s2){
-    s1=s1.toLowerCase(); s2=s2.toLowerCase();
-    const costs=[];
-    for(let i=0;i<=s1.length;i++){
-      let lastValue=i;
-      for(let j=0;j<=s2.length;j++){
-        if(i===0)costs[j]=j;
-        else if(j>0){
-          let newValue=costs[j-1];
-          if(s1.charAt(i-1)!==s2.charAt(j-1))
-            newValue=Math.min(Math.min(newValue,lastValue),costs[j])+1;
-          costs[j-1]=lastValue; lastValue=newValue;
-        }
-      }
-      if(i>0)costs[s2.length]=lastValue;
-    }
-    return costs[s2.length];
-  }
-
-  function speak(text){
-    const utterance=new SpeechSynthesisUtterance(text);
-    utterance.rate=0.7;
-    speechSynthesis.speak(utterance);
-  }
-
-  function loadNext(){
-    if(round>=totalRounds){ showResult(); return; }
-    const item=items[round];
-    imgEl.src=item.img;
-    wordEl.textContent=item.word;
-    round++;
-    scoreBox.textContent=`Round: ${round}/${totalRounds} | Score: ${score}`;
-  }
-
-  function showResult(){
-    mainBox.style.display="none";
-    resultBox.style.display="block";
-    let emoji="😊", msg="";
-    if(score>=9){ emoji="🏆🌟"; msg="Excellent! You’re a reading champion!"; }
-    else if(score>=7){ emoji="🎉"; msg="Very Good! Keep shining!"; }
-    else if(score>=5){ emoji="👍"; msg="Good job! Practice more!"; }
-    else { emoji="🙂"; msg="Nice try! Let’s practice again!"; }
-    resultEmoji.textContent=emoji;
-    resultText.innerHTML=`Your score: <b>${score}/${totalRounds}</b><br>${msg}`;
-  }
-
-  function restart(){
-    round=0; score=0;
-    mainBox.style.display="block";
-    resultBox.style.display="none";
-    loadNext();
-  }
-
-  playBtn.onclick=()=>{ speak(wordEl.textContent); if(recognition) recognition.start(); };
-  nextBtn.onclick=loadNext;
-
+function startTest() {
+  accent = document.getElementById("accentSelect").value;
+  setupBox.style.display = "none";
+  mainBox.style.display = "block";
+  round = 0;
+  score = 0;
   loadNext();
+}
+
+function speak(text) {
+  const utter = new SpeechSynthesisUtterance(text);
+  utter.lang = accent;
+  utter.rate = 0.7;
+  speechSynthesis.speak(utter);
+}
+
+function loadNext() {
+  if (round >= totalRounds) { showResult(); return; }
+
+  const item = items[Math.floor(Math.random() * items.length)];
+  itemImage.src = item.img;
+  wordText.textContent = item.word;
+  round++;
+  scoreBox.textContent = `Round: ${round}/${totalRounds} | Score: ${score}`;
+  
+  setTimeout(() => startRecognition(item.word), 1500);
+  speak(item.word);
+}
+
+function startRecognition(targetWord) {
+  if (!("webkitSpeechRecognition" in window)) {
+    alert("Speech recognition not supported in this browser.");
+    return;
+  }
+  recognition = new webkitSpeechRecognition();
+  recognition.lang = accent;
+  recognition.interimResults = false;
+  recognition.maxAlternatives = 1;
+
+  recognition.onresult = (event) => {
+    const spoken = event.results[0][0].transcript.toLowerCase().trim();
+    const accuracy = similarity(spoken, targetWord);
+    if (accuracy >= 0.7) score++;
+    scoreBox.textContent = `Round: ${round}/${totalRounds} | Score: ${score}`;
+    setTimeout(loadNext, 1000);
+  };
+  recognition.onerror = () => setTimeout(loadNext, 1500);
+  recognition.start();
+}
+
+function similarity(a, b) {
+  const longer = a.length > b.length ? a : b;
+  const shorter = a.length > b.length ? b : a;
+  const longerLength = longer.length;
+  if (longerLength === 0) return 1.0;
+  return (longerLength - editDistance(longer, shorter)) / longerLength;
+}
+
+function editDistance(s1, s2) {
+  s1 = s1.toLowerCase();
+  s2 = s2.toLowerCase();
+  const costs = [];
+  for (let i = 0; i <= s1.length; i++) {
+    let lastValue = i;
+    for (let j = 0; j <= s2.length; j++) {
+      if (i === 0)
+        costs[j] = j;
+      else if (j > 0) {
+        let newValue = costs[j - 1];
+        if (s1.charAt(i - 1) !== s2.charAt(j - 1))
+          newValue = Math.min(Math.min(newValue, lastValue), costs[j]) + 1;
+        costs[j - 1] = lastValue;
+        lastValue = newValue;
+      }
+    }
+    if (i > 0) costs[s2.length] = lastValue;
+  }
+  return costs[s2.length];
+}
+
+function showResult() {
+  mainBox.style.display = "none";
+  resultBox.style.display = "block";
+
+  let emoji = "🙂";
+  let message = "Keep Practicing!";
+  if (score >= 9) { emoji = "🏆🌟"; message = "Excellent! You’re a Reading Star!"; }
+  else if (score >= 7) { emoji = "🎉"; message = "Good job! Keep it up!"; }
+  else if (score >= 5) { emoji = "👍"; message = "Nice effort! Practice more!"; }
+
+  resultEmoji.textContent = emoji;
+  resultText.innerHTML = `Your final score is <b>${score}/${totalRounds}</b><br>${message}`;
+}
+
+function restartTest() {
+  resultBox.style.display = "none";
+  setupBox.style.display = "block";
+}
 </script>
+
 </body>
 </html>
