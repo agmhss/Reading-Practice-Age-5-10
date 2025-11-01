@@ -1,239 +1,225 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>🌈 Gtk Reading Program for Kids</title>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Gtk Reading Program for Kids </title>
 <style>
   body {
     font-family: "Comic Sans MS", sans-serif;
+    background: linear-gradient(135deg, #e8f0ff, #f9faff);
     text-align: center;
     margin: 0;
-    background: linear-gradient(135deg, #c2e9fb, #a1c4fd);
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
+    padding: 0;
   }
   header {
-    font-size: 26px;
+    background: #4b8bff;
+    color: white;
+    padding: 15px;
+    font-size: 22px;
     font-weight: bold;
-    color: #004aad;
-    margin-bottom: 20px;
   }
-  #setupBox, #mainBox, #resultBox {
-    background: white;
-    padding: 25px;
-    border-radius: 20px;
-    width: 90%;
-    max-width: 420px;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.2);
-  }
-  img {
-    width: 180px;
-    height: 180px;
-    object-fit: contain;
-    border-radius: 20px;
-    margin-top: 10px;
-    background: #fff;
-  }
-  .word {
-    font-size: 28px;
+  #main { margin-top: 30px; }
+  .sentence {
+    font-size: 24px;
     margin: 15px;
-    font-weight: bold;
     color: #333;
   }
   button {
-    background: #4b8bff;
-    color: white;
-    border: none;
-    padding: 10px 20px;
-    border-radius: 12px;
-    font-size: 18px;
-    margin: 10px;
-    cursor: pointer;
+    font-size: 18px; margin: 10px; padding: 10px 20px;
+    border: none; background: #4b8bff; color: white;
+    border-radius: 10px; cursor: pointer;
   }
   button:hover { background: #3366cc; }
-  select {
-    font-size: 16px;
-    padding: 6px 10px;
-    border-radius: 8px;
-    margin-top: 10px;
+  #scoreBoard {
+    font-size: 20px; margin: 20px; color: #333;
   }
-  #scoreBox {
-    font-size: 18px;
-    margin-top: 10px;
-    color: #004aad;
-    font-weight: bold;
+  #voiceSelect {
+    font-size: 16px; margin-top: 10px;
+    padding: 5px; border-radius: 6px;
   }
-  #resultBox h2 { font-size: 26px; margin-bottom: 10px; }
-  #resultBox p { font-size: 18px; margin-bottom: 15px; }
 </style>
 </head>
 <body>
 
-<header>🌈 Gtk Reading Program for Kids</header>
+<header>📖 Gtk Reading Program for Kids</header>
 
-<div id="setupBox">
-  <p><b>Select accent:</b></p>
-  <select id="accentSelect">
-    <option value="en-US">🇺🇸 English (US)</option>
-    <option value="en-GB">🇬🇧 English (UK)</option>
-    <option value="en-IN" selected>🇮🇳 English (India)</option>
-  </select><br>
-  <button onclick="startTest()">Start Test</button>
-</div>
-
-<div id="mainBox" style="display:none;">
-  <img id="itemImage" src="" alt="object">
-  <div id="wordText" class="word">...</div>
-  <div id="scoreBox">Round: 0/10 | Score: 0</div>
-</div>
-
-<div id="resultBox" style="display:none;">
-  <h2 id="resultEmoji"></h2>
-  <p id="resultText"></p>
-  <button onclick="restartTest()">🔁 Restart Test</button>
+<div id="main">
+  <div id="textArea" class="sentence"></div>
+  <button onclick="playReading()">🔊 Play</button>
+  <button onclick="nextSentence()">Next Line</button>
+  <div id="scoreBoard">Score: <span id="score">0</span> / 10</div>
+  <select id="voiceSelect">
+    <option value="en-US">English (US)</option>
+    <option value="en-GB">English (UK)</option>
+    <option value="en-IN">English (India)</option>
+  </select>
 </div>
 
 <script>
-const items = [
-  { word: "apple", img: "https://cdn-icons-png.flaticon.com/512/415/415733.png" },
-  { word: "ball", img: "https://cdn-icons-png.flaticon.com/512/1163/1163661.png" },
-  { word: "cat", img: "https://cdn-icons-png.flaticon.com/512/616/616408.png" },
-  { word: "dog", img: "https://cdn-icons-png.flaticon.com/512/616/616408.png" },
-  { word: "fish", img: "https://cdn-icons-png.flaticon.com/512/616/616490.png" },
-  { word: "car", img: "https://cdn-icons-png.flaticon.com/512/743/743922.png" },
-  { word: "leaf", img: "https://cdn-icons-png.flaticon.com/512/2909/2909765.png" },
-  { word: "sun", img: "https://cdn-icons-png.flaticon.com/512/869/869869.png" },
-  { word: "star", img: "https://cdn-icons-png.flaticon.com/512/1828/1828884.png" },
-  { word: "tree", img: "https://cdn-icons-png.flaticon.com/512/765/765614.png" },
-  { word: "book", img: "https://cdn-icons-png.flaticon.com/512/2232/2232688.png" },
-  { word: "cup", img: "https://cdn-icons-png.flaticon.com/512/747/747830.png" },
-  { word: "house", img: "https://cdn-icons-png.flaticon.com/512/616/616408.png" },
-  { word: "banana", img: "https://cdn-icons-png.flaticon.com/512/415/415733.png" },
-  { word: "orange", img: "https://cdn-icons-png.flaticon.com/512/2909/2909765.png" },
-  { word: "train", img: "https://cdn-icons-png.flaticon.com/512/743/743922.png" },
-  { word: "duck", img: "https://cdn-icons-png.flaticon.com/512/616/616490.png" },
-  { word: "hat", img: "https://cdn-icons-png.flaticon.com/512/3434/3434793.png" },
-  { word: "shoe", img: "https://cdn-icons-png.flaticon.com/512/25/25445.png" },
-  { word: "grape", img: "https://cdn-icons-png.flaticon.com/512/766/766198.png" },
+/* ------------ DATA: 100 WORD SETS ------------- */
+const allExercises = [
+  ["apple", "green apple", "I like to eat green apple."],
+  ["ball", "red ball", "I can throw a red ball."],
+  ["cat", "small cat", "I have a small cat."],
+  ["dog", "brown dog", "The brown dog is running."],
+  ["fish", "blue fish", "The blue fish swims fast."],
+  ["grape", "sweet grape", "I like to eat sweet grapes."],
+  ["pen", "blue pen", "I write with a blue pen."],
+  ["hat", "big hat", "He wears a big hat."],
+  ["sun", "bright sun", "The bright sun is shining."],
+  ["train", "long train", "The long train goes fast."],
+  ["bird", "yellow bird", "The yellow bird can sing."],
+  ["chair", "wooden chair", "I sit on a wooden chair."],
+  ["flower", "red flower", "The red flower smells nice."],
+  ["tree", "tall tree", "The tall tree gives shade."],
+  ["car", "blue car", "I saw a blue car."],
+  ["bus", "yellow bus", "The yellow bus stops here."],
+  ["boat", "small boat", "The small boat floats on water."],
+  ["shoe", "black shoe", "I wear a black shoe."],
+  ["cake", "sweet cake", "I ate a sweet cake."],
+  ["star", "bright star", "The bright star shines at night."],
+  ["frog", "green frog", "The green frog jumps high."],
+  ["cow", "white cow", "The white cow eats grass."],
+  ["book", "new book", "I read a new book."],
+  ["box", "big box", "The big box is heavy."],
+  ["cup", "tea cup", "She drinks tea in a cup."],
+  ["door", "wooden door", "He opened the wooden door."],
+  ["egg", "boiled egg", "I had a boiled egg."],
+  ["eye", "blue eye", "He has a blue eye."],
+  ["fan", "ceiling fan", "The ceiling fan spins fast."],
+  ["hand", "small hand", "The baby has a small hand."],
+  ["juice", "mango juice", "I like mango juice."],
+  ["kite", "red kite", "The red kite flies high."],
+  ["lamp", "bright lamp", "The bright lamp glows."],
+  ["leaf", "green leaf", "The green leaf is fresh."],
+  ["milk", "cold milk", "I drink cold milk."],
+  ["nest", "bird nest", "The bird built a nest."],
+  ["orange", "sweet orange", "I peeled a sweet orange."],
+  ["pencil", "sharp pencil", "I draw with a sharp pencil."],
+  ["rain", "heavy rain", "The heavy rain fell hard."],
+  ["shoe", "brown shoe", "He polished his brown shoe."],
+  ["table", "round table", "We sit around the round table."],
+  ["umbrella", "red umbrella", "She holds a red umbrella."],
+  ["vase", "flower vase", "He placed roses in the vase."],
+  ["watch", "digital watch", "I wear a digital watch."],
+  ["yarn", "soft yarn", "She knits with soft yarn."],
+  ["zebra", "striped zebra", "The striped zebra runs fast."],
+  ["lion", "wild lion", "The wild lion roars loudly."],
+  ["tiger", "strong tiger", "The strong tiger hunts."],
+  ["monkey", "funny monkey", "The funny monkey jumps."],
+  ["elephant", "big elephant", "The big elephant walks slowly."],
+  ["camel", "tall camel", "The tall camel walks in sand."],
+  ["deer", "brown deer", "The brown deer runs fast."],
+  ["rabbit", "white rabbit", "The white rabbit eats carrots."],
+  ["peacock", "beautiful peacock", "The beautiful peacock dances."],
+  ["butterfly", "colorful butterfly", "The colorful butterfly flies."],
+  ["rainbow", "seven-color rainbow", "The seven-color rainbow is pretty."],
+  ["mountain", "high mountain", "We climbed a high mountain."],
+  ["river", "long river", "The long river flows fast."],
+  ["bridge", "old bridge", "The old bridge is strong."],
+  ["road", "narrow road", "The narrow road leads home."],
+  ["school", "big school", "I go to a big school."],
+  ["teacher", "kind teacher", "The kind teacher smiles."],
+  ["student", "smart student", "The smart student studies hard."],
+  ["chalk", "white chalk", "He writes with white chalk."],
+  ["desk", "clean desk", "My clean desk is ready."],
+  ["book", "open book", "The open book has pictures."],
+  ["window", "glass window", "The glass window is clear."],
+  ["wall", "blue wall", "The blue wall looks nice."],
+  ["garden", "green garden", "We played in the green garden."],
+  ["plant", "small plant", "The small plant grows fast."],
+  ["clock", "round clock", "The round clock shows time."],
+  ["bell", "loud bell", "The loud bell rings."],
+  ["bread", "fresh bread", "We ate fresh bread."],
+  ["banana", "yellow banana", "The yellow banana is tasty."],
+  ["pot", "clay pot", "The clay pot is full of water."],
+  ["drum", "big drum", "The big drum makes sound."],
+  ["mirror", "clean mirror", "I looked into a clean mirror."],
+  ["pillow", "soft pillow", "I sleep on a soft pillow."],
+  ["blanket", "warm blanket", "The warm blanket keeps me cozy."],
+  ["toy", "new toy", "The child plays with a new toy."],
+  ["bottle", "water bottle", "The water bottle is full."],
+  ["plate", "white plate", "The white plate is clean."],
+  ["basket", "fruit basket", "The fruit basket has apples."],
+  ["key", "golden key", "The golden key opens the door."],
+  ["lock", "silver lock", "He closed the silver lock."],
+  ["camera", "black camera", "He took photos with a black camera."],
+  ["phone", "smart phone", "I called my friend on the smart phone."],
+  ["laptop", "new laptop", "I type on my new laptop."],
+  ["mouse", "computer mouse", "The computer mouse is on the desk."],
+  ["bag", "school bag", "I packed my school bag."],
+  ["pencil box", "red pencil box", "The red pencil box has erasers."],
+  ["eraser", "white eraser", "I use a white eraser."],
+  ["balloon", "pink balloon", "The pink balloon floats up."],
+  ["cupcake", "chocolate cupcake", "I ate a chocolate cupcake."],
+  ["ice cream", "vanilla ice cream", "I love vanilla ice cream."],
+  ["cookie", "chocolate cookie", "She baked chocolate cookies."],
+  ["sand", "soft sand", "We walked on soft sand."],
+  ["cloud", "white cloud", "The white cloud moves slowly."],
+  ["moon", "round moon", "The round moon shines bright."],
+  ["starfish", "orange starfish", "The orange starfish is pretty."],
+  ["leaf", "fresh leaf", "The fresh leaf looks green."]
 ];
 
-let round = 0;
+/* ------------ SELECT RANDOM 10 ------------- */
+const exercises = allExercises.sort(() => 0.5 - Math.random()).slice(0, 10);
+
+let currentIndex = 0;
+let sentenceStage = 0;
 let score = 0;
-const totalRounds = 10;
-let recognition;
-let accent = "en-IN";
 
-const setupBox = document.getElementById("setupBox");
-const mainBox = document.getElementById("mainBox");
-const resultBox = document.getElementById("resultBox");
-const itemImage = document.getElementById("itemImage");
-const wordText = document.getElementById("wordText");
-const scoreBox = document.getElementById("scoreBox");
-const resultEmoji = document.getElementById("resultEmoji");
-const resultText = document.getElementById("resultText");
+/* ------------ DOM ------------- */
+const textArea = document.getElementById("textArea");
+const scoreDisplay = document.getElementById("score");
+const voiceSelect = document.getElementById("voiceSelect");
 
-function startTest() {
-  accent = document.getElementById("accentSelect").value;
-  setupBox.style.display = "none";
-  mainBox.style.display = "block";
-  round = 0;
-  score = 0;
-  loadNext();
+/* ------------ FUNCTIONS ------------- */
+function loadExercise() {
+  sentenceStage = 0;
+  textArea.textContent = exercises[currentIndex][sentenceStage];
 }
 
-function speak(text) {
-  const utter = new SpeechSynthesisUtterance(text);
-  utter.lang = accent;
-  utter.rate = 0.7;
-  speechSynthesis.speak(utter);
-}
-
-function loadNext() {
-  if (round >= totalRounds) { showResult(); return; }
-
-  const item = items[Math.floor(Math.random() * items.length)];
-  itemImage.src = item.img;
-  wordText.textContent = item.word;
-  round++;
-  scoreBox.textContent = `Round: ${round}/${totalRounds} | Score: ${score}`;
-  
-  setTimeout(() => startRecognition(item.word), 1500);
-  speak(item.word);
-}
-
-function startRecognition(targetWord) {
-  if (!("webkitSpeechRecognition" in window)) {
-    alert("Speech recognition not supported in this browser.");
-    return;
-  }
-  recognition = new webkitSpeechRecognition();
-  recognition.lang = accent;
-  recognition.interimResults = false;
-  recognition.maxAlternatives = 1;
-
-  recognition.onresult = (event) => {
-    const spoken = event.results[0][0].transcript.toLowerCase().trim();
-    const accuracy = similarity(spoken, targetWord);
-    if (accuracy >= 0.7) score++;
-    scoreBox.textContent = `Round: ${round}/${totalRounds} | Score: ${score}`;
-    setTimeout(loadNext, 1000);
-  };
-  recognition.onerror = () => setTimeout(loadNext, 1500);
-  recognition.start();
-}
-
-function similarity(a, b) {
-  const longer = a.length > b.length ? a : b;
-  const shorter = a.length > b.length ? b : a;
-  const longerLength = longer.length;
-  if (longerLength === 0) return 1.0;
-  return (longerLength - editDistance(longer, shorter)) / longerLength;
-}
-
-function editDistance(s1, s2) {
-  s1 = s1.toLowerCase();
-  s2 = s2.toLowerCase();
-  const costs = [];
-  for (let i = 0; i <= s1.length; i++) {
-    let lastValue = i;
-    for (let j = 0; j <= s2.length; j++) {
-      if (i === 0)
-        costs[j] = j;
-      else if (j > 0) {
-        let newValue = costs[j - 1];
-        if (s1.charAt(i - 1) !== s2.charAt(j - 1))
-          newValue = Math.min(Math.min(newValue, lastValue), costs[j]) + 1;
-        costs[j - 1] = lastValue;
-        lastValue = newValue;
-      }
+function nextSentence() {
+  sentenceStage++;
+  if (sentenceStage < 3) {
+    textArea.textContent = exercises[currentIndex][sentenceStage];
+    playReading();
+    setTimeout(() => nextSentence(), 4000);
+  } else {
+    score++;
+    scoreDisplay.textContent = score;
+    if (currentIndex < exercises.length - 1) {
+      currentIndex++;
+      setTimeout(loadExercise, 3000);
+    } else {
+      endTest();
     }
-    if (i > 0) costs[s2.length] = lastValue;
   }
-  return costs[s2.length];
 }
 
-function showResult() {
-  mainBox.style.display = "none";
-  resultBox.style.display = "block";
-
-  let emoji = "🙂";
-  let message = "Keep Practicing!";
-  if (score >= 9) { emoji = "🏆🌟"; message = "Excellent! You’re a Reading Star!"; }
-  else if (score >= 7) { emoji = "🎉"; message = "Good job! Keep it up!"; }
-  else if (score >= 5) { emoji = "👍"; message = "Nice effort! Practice more!"; }
-
-  resultEmoji.textContent = emoji;
-  resultText.innerHTML = `Your final score is <b>${score}/${totalRounds}</b><br>${message}`;
+function playReading() {
+  const utterance = new SpeechSynthesisUtterance(textArea.textContent);
+  utterance.rate = 0.7;
+  utterance.pitch = 1;
+  utterance.lang = voiceSelect.value;
+  window.speechSynthesis.speak(utterance);
 }
 
-function restartTest() {
-  resultBox.style.display = "none";
-  setupBox.style.display = "block";
+function endTest() {
+  textArea.textContent = `🎉 Great job! You scored ${score} out of 10!`;
+  document.querySelectorAll("button, select").forEach(btn => btn.style.display = "none");
+  const restartBtn = document.createElement("button");
+  restartBtn.textContent = "🔁 Restart Test";
+  restartBtn.onclick = () => location.reload();
+  document.body.appendChild(restartBtn);
 }
+
+/* ------------ INIT ------------- */
+document.addEventListener("DOMContentLoaded", () => {
+  loadExercise();
+  playReading();
+});
 </script>
 
 </body>
