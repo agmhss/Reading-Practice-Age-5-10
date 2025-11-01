@@ -8,8 +8,7 @@
   body {
     font-family: "Comic Sans MS", sans-serif;
     background: linear-gradient(135deg, #e8f0ff, #f9faff);
-    text-align: center;
-    margin: 0; padding: 0;
+    text-align: center; margin: 0; padding: 0;
   }
   header {
     background: #4b8bff; color: white;
@@ -31,13 +30,12 @@
     position: relative;
   }
   #imageBox img { width: 100%; height: 100%; object-fit: cover; }
-  #editBtn {
-    position: absolute; top: 5px; right: 5px;
-    background: rgba(0,0,0,0.6); color: #fff;
-    font-size: 14px; padding: 4px 8px; border-radius: 6px; cursor: pointer;
-    display: none;
+  #editLabel {
+    font-size: 14px; margin-top: 5px; color: #4b8bff; cursor: pointer;
+    text-decoration: underline;
   }
   #listenBtn.listening { background: #ff9900; }
+  #feedback { font-size: 22px; margin-top: 10px; height: 28px; }
 
   /* Hall of Fame */
   #hallOfFame {
@@ -47,29 +45,32 @@
   }
   #hallOfFame h2 { color: #4b8bff; margin-bottom: 10px; }
   table { width: 100%; border-collapse: collapse; }
-  th, td {
-    border-bottom: 1px solid #ddd;
-    padding: 8px;
-  }
+  th, td { border-bottom: 1px solid #ddd; padding: 8px; }
   th { background: #f0f4ff; color: #333; }
   tr:nth-child(even) { background: #f9f9f9; }
-  @media (max-width: 600px) {
-    .sentence { font-size: 22px; }
-    #imageBox { width: 180px; height: 180px; }
-  }
 </style>
 </head>
 <body>
 
 <header>📖 Gtk Reading Program for Kids</header>
 
-<div id="main">
+<!-- Name & class at start -->
+<div id="intro">
+  <h2>👋 Welcome!</h2>
+  <p>Please enter your details to begin:</p>
+  <input id="studentName" placeholder="Your Name" style="padding:6px;margin:5px;">
+  <input id="studentClass" placeholder="Class" style="padding:6px;margin:5px;">
+  <button onclick="startProgram()">Start Reading Test</button>
+</div>
+
+<div id="main" style="display:none;">
   <div id="imageBox">
     <img id="pic" src="" alt="Word Image">
-    <div id="editBtn" onclick="adminChangeImage()">🖊️ Change</div>
   </div>
+  <div id="editLabel" onclick="adminChangeImage()">🖊 Insert the relevant picture here</div>
 
   <div id="textArea" class="sentence"></div>
+  <div id="feedback"></div>
 
   <button onclick="playReading()">🔊 Listen</button>
   <button id="listenBtn" onclick="startListening()">🎤 Read Aloud</button>
@@ -93,15 +94,14 @@
     <thead><tr><th>Name</th><th>Class</th><th>Score</th><th>Date</th></tr></thead>
     <tbody></tbody>
   </table>
-  <button onclick="downloadPDF()">⬇️ Download as PDF</button>
+  <button onclick="downloadPDF()">⬇️ Download PDF</button>
   <button onclick="resetHall()">🧹 Reset Hall of Fame</button>
 </div>
 
-<!-- Library for PDF generation -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
 <script>
-/* ------------ WORD SETS (Short Example) ------------ */
+/* ---------------- WORD DATA ---------------- */
 const allExercises = [
   ["apple", "green apple", "I like to eat a green apple."],
   ["ball", "red ball", "I can throw a red ball."],
@@ -114,35 +114,40 @@ const allExercises = [
   ["lion", "wild lion", "The wild lion roars loudly."],
   ["zebra", "striped zebra", "The striped zebra runs fast."]
 ];
-
 const exercises = allExercises.sort(() => 0.5 - Math.random()).slice(0, 10);
 
 let currentIndex = 0;
 let sentenceStage = 0;
 let score = 0;
-let adminMode = false;
+let student = { name: "", className: "" };
 
 const textArea = document.getElementById("textArea");
 const scoreDisplay = document.getElementById("score");
 const voiceSelect = document.getElementById("voiceSelect");
 const imageBox = document.getElementById("pic");
 const listenBtn = document.getElementById("listenBtn");
-const editBtn = document.getElementById("editBtn");
 const fileInput = document.getElementById("fileInput");
+const feedback = document.getElementById("feedback");
 
-/* ------------ IMAGE MAP ------------ */
-let imageMap = JSON.parse(localStorage.getItem("gtkImageMap") || "{}");
-
-function loadImage(keyword) {
-  const key = keyword.toLowerCase();
-  if (imageMap[key]) {
-    imageBox.src = imageMap[key];
-  } else {
-    imageBox.src = `images/${key}.jpg`;
-  }
+/* ---------------- START ---------------- */
+function startProgram() {
+  const name = document.getElementById("studentName").value.trim();
+  const cls = document.getElementById("studentClass").value.trim();
+  if (!name || !cls) return alert("Please enter your name and class.");
+  student = { name, className: cls };
+  document.getElementById("intro").style.display = "none";
+  document.getElementById("main").style.display = "block";
+  loadExercise();
 }
 
-/* ------------ ADMIN IMAGE CHANGE ------------ */
+/* ---------------- IMAGE MAP ---------------- */
+let imageMap = JSON.parse(localStorage.getItem("gtkImageMap") || "{}");
+function loadImage(keyword) {
+  const key = keyword.toLowerCase();
+  imageBox.src = imageMap[key] || `images/${key}.jpg`;
+}
+
+/* ---------------- IMAGE CHANGE ---------------- */
 function adminChangeImage() { fileInput.click(); }
 fileInput.addEventListener("change", () => {
   const file = fileInput.files[0];
@@ -153,58 +158,41 @@ fileInput.addEventListener("change", () => {
       imageMap[key] = e.target.result;
       localStorage.setItem("gtkImageMap", JSON.stringify(imageMap));
       imageBox.src = e.target.result;
-      alert(`✅ Image for "${key}" updated!`);
+      feedback.textContent = "✅ Picture updated!";
     };
     reader.readAsDataURL(file);
   }
 });
 
-/* ------------ ADMIN TOGGLE ------------ */
-document.addEventListener("keydown", e => {
-  if (e.ctrlKey && e.shiftKey && e.key === "A") {
-    adminMode = !adminMode;
-    editBtn.style.display = adminMode ? "block" : "none";
-    alert(adminMode ? "🧑‍🏫 Admin mode ON" : "🔒 Admin mode OFF");
-  }
-});
-
-/* ------------ SPEECH SYNTHESIS ------------ */
+/* ---------------- SPEECH SYNTHESIS ---------------- */
 function playReading() {
   const utter = new SpeechSynthesisUtterance(textArea.textContent);
   utter.rate = 0.8; utter.lang = voiceSelect.value;
   window.speechSynthesis.speak(utter);
 }
 
-/* ------------ SPEECH RECOGNITION ------------ */
+/* ---------------- SPEECH RECOGNITION ---------------- */
 let recognition;
 if ('webkitSpeechRecognition' in window) {
   recognition = new webkitSpeechRecognition();
   recognition.lang = 'en-US';
-  recognition.onstart = () => {
-    listenBtn.classList.add("listening");
-    listenBtn.textContent = "🎤 Listening...";
-  };
-  recognition.onend = () => {
-    listenBtn.classList.remove("listening");
-    listenBtn.textContent = "🎤 Read Aloud";
-  };
   recognition.onresult = (event) => {
     const spoken = event.results[0][0].transcript.toLowerCase().trim();
-    const expected = textArea.textContent.toLowerCase().replace(/[^\w\s]/gi, '');
+    const expected = textArea.textContent.toLowerCase().replace(/[^\w\s]/g, '');
     if (spoken.includes(expected.split(" ")[0])) {
-      score++;
+      if (score < 10) score++;
       scoreDisplay.textContent = score;
-      alert("✅ Great job!");
-      nextSentence();
+      feedback.textContent = "✅ Correct!";
+      setTimeout(() => { feedback.textContent = ""; nextSentence(); }, 1000);
     } else {
-      alert("❌ Try again!");
+      feedback.textContent = "❌ Try again!";
+      setTimeout(() => { feedback.textContent = ""; }, 1200);
     }
   };
-} else alert("Speech Recognition not supported in this browser.");
-
+}
 function startListening() { if (recognition) recognition.start(); }
 
-/* ------------ GAME FLOW ------------ */
+/* ---------------- FLOW ---------------- */
 function loadExercise() {
   sentenceStage = 0;
   const current = exercises[currentIndex];
@@ -223,13 +211,11 @@ function nextSentence() {
     if (currentIndex < exercises.length - 1) {
       currentIndex++;
       setTimeout(loadExercise, 1500);
-    } else {
-      endTest();
-    }
+    } else endTest();
   }
 }
 
-/* ------------ HALL OF FAME ------------ */
+/* ---------------- HALL OF FAME ---------------- */
 function showHallOfFame() {
   const fameTable = document.querySelector("#hallTable tbody");
   fameTable.innerHTML = "";
@@ -242,7 +228,6 @@ function showHallOfFame() {
   });
 }
 
-/* ------------ SAVE ------------ */
 function saveToHallOfFame(name, className, score) {
   const hallData = JSON.parse(localStorage.getItem("gtkHallOfFame") || "[]");
   const date = new Date().toLocaleDateString();
@@ -251,38 +236,21 @@ function saveToHallOfFame(name, className, score) {
   showHallOfFame();
 }
 
-/* ------------ END TEST ------------ */
+/* ---------------- END TEST ---------------- */
 function endTest() {
   textArea.textContent = `🎉 Great job! You scored ${score} out of 10!`;
   imageBox.src = "images/congrats.jpg";
-  document.querySelectorAll("button, select").forEach(el => el.style.display = "none");
-
-  const form = document.createElement("div");
-  form.innerHTML = `
-    <h3>Enter your details</h3>
-    <input id="playerName" placeholder="Name" style="padding:5px; margin:5px;">
-    <input id="playerClass" placeholder="Class" style="padding:5px; margin:5px;">
-    <button onclick="submitScore()">🏆 Submit to Hall of Fame</button>
-  `;
-  document.body.appendChild(form);
+  document.querySelectorAll("#main button, #voiceSelect").forEach(el => el.style.display = "none");
+  saveToHallOfFame(student.name, student.className, score);
 }
 
-function submitScore() {
-  const name = document.getElementById("playerName").value.trim();
-  const className = document.getElementById("playerClass").value.trim();
-  if (!name || !className) return alert("Please enter name and class!");
-  saveToHallOfFame(name, className, score);
-  document.body.querySelector("div h3").parentElement.remove();
-}
-
-/* ------------ PDF DOWNLOAD ------------ */
+/* ---------------- PDF + RESET ---------------- */
 async function downloadPDF() {
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF();
   doc.setFontSize(16);
   doc.text("Gtk Reading Program - Hall of Fame", 20, 20);
   doc.setFontSize(12);
-
   const hallData = JSON.parse(localStorage.getItem("gtkHallOfFame") || "[]");
   let y = 40;
   doc.text("Name", 20, y);
@@ -290,33 +258,24 @@ async function downloadPDF() {
   doc.text("Score", 120, y);
   doc.text("Date", 160, y);
   y += 10;
-
-  hallData.sort((a,b) => b.score - a.score).forEach(entry => {
-    doc.text(entry.name, 20, y);
-    doc.text(entry.className, 70, y);
-    doc.text(entry.score.toString(), 120, y);
-    doc.text(entry.date, 160, y);
-    y += 10;
-    if (y > 270) { doc.addPage(); y = 20; }
+  hallData.sort((a,b)=>b.score-a.score).forEach(e=>{
+    doc.text(e.name,20,y); doc.text(e.className,70,y);
+    doc.text(e.score.toString(),120,y); doc.text(e.date,160,y);
+    y+=10; if(y>270){doc.addPage();y=20;}
   });
-
   doc.save("Hall_of_Fame.pdf");
 }
 
-/* ------------ RESET ------------ */
 function resetHall() {
-  if (confirm("⚠️ Are you sure you want to clear all Hall of Fame records?")) {
+  if (confirm("⚠️ Clear all Hall of Fame records?")) {
     localStorage.removeItem("gtkHallOfFame");
-    alert("Hall of Fame cleared.");
     showHallOfFame();
+    alert("Hall of Fame cleared.");
   }
 }
 
-/* ------------ INIT ------------ */
-document.addEventListener("DOMContentLoaded", () => {
-  loadExercise();
-  showHallOfFame();
-});
+/* ---------------- INIT ---------------- */
+document.addEventListener("DOMContentLoaded", showHallOfFame);
 </script>
 </body>
 </html>
