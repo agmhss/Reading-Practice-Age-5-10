@@ -198,7 +198,7 @@ const allExercises = [
   ["butter", "soft butter", "She spreads soft butter on bread."],
   ["toy car", "small toy car", "He plays with a small toy car."],
   ["bird nest", "tiny bird nest", "A tiny bird nest is on the tree."],
-  ["raincoat", "blue raincoat", "I wear a blue raincoat in rain."]
+  ["raincoat", "blue raincoat", "I wear a blue raincoat in rain."],
 ];
 const exercises = allExercises.sort(() => 0.5 - Math.random()).slice(0, 10);
 
@@ -331,26 +331,60 @@ function endTest() {
 }
 
 /* ---------------- PDF + RESET ---------------- */
+/* ------------ PDF DOWNLOAD (Improved) ------------ */
 async function downloadPDF() {
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF();
+
+  // Gold cup image (base64 PNG)
+  const trophy =
+    "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAB4AAAAeCAYAAAA7MK6iAAAAvUlEQVRIS+3UQQrCQBBF0Q8xB2ygC7gg20EkuoL3ZAHf5aXBD+FtLGyNEak8cVv/jfVdt3n7kwKMpUkkvZmIHe84dH7+ClqlqPBPZzhYUzpsYQ1lF1tZJfE3EcROZ7W4tZKpWn+DKC3VbRJEiJNEkDVmCHFCMMUgwxQjDFIMMUowxSDFGMMSgQpn7wCB2yDawYiPM/nIC2beZVZk6tM6B7gZbp7ZUnW1vAAAAAElFTkSuQmCC";
+
+  // Title with cups on both sides
+  const pageWidth = doc.internal.pageSize.getWidth();
+  const title = "Hall of Fame - Gtk Reading Program";
+  const textWidth = doc.getTextWidth(title);
+  const startX = (pageWidth - textWidth) / 2;
+  const titleY = 25;
+
+  // Centered title and cups
+  doc.addImage(trophy, "PNG", startX - 15, titleY - 8, 10, 10);
+  doc.setFont("helvetica", "bold");
   doc.setFontSize(16);
-  doc.text("Gtk Reading Program - Hall of Fame", 20, 20);
+  doc.text(title, startX, titleY);
+  doc.addImage(trophy, "PNG", startX + textWidth + 5, titleY - 8, 10, 10);
+
+  // Table header
+  const startY = 40;
   doc.setFontSize(12);
+  doc.setLineWidth(0.5);
+  doc.rect(15, startY - 8, 180, 10); // table top border
+  doc.text("Name", 25, startY - 2);
+  doc.text("Class", 75, startY - 2);
+  doc.text("Score", 125, startY - 2);
+  doc.text("Date", 165, startY - 2);
+
+  // Table body
   const hallData = JSON.parse(localStorage.getItem("gtkHallOfFame") || "[]");
-  let y = 40;
-  doc.text("Name", 20, y);
-  doc.text("Class", 70, y);
-  doc.text("Score", 120, y);
-  doc.text("Date", 160, y);
-  y += 10;
-  hallData.sort((a,b)=>b.score-a.score).forEach(e=>{
-    doc.text(e.name,20,y); doc.text(e.className,70,y);
-    doc.text(e.score.toString(),120,y); doc.text(e.date,160,y);
-    y+=10; if(y>270){doc.addPage();y=20;}
+  hallData.sort((a,b)=>b.score-a.score);
+  let y = startY + 2;
+
+  hallData.forEach((entry, i) => {
+    y += 10;
+    doc.rect(15, y - 8, 180, 10); // cell border
+    doc.text(entry.name, 25, y - 2);
+    doc.text(entry.className, 75, y - 2);
+    doc.text(entry.score.toString(), 125, y - 2);
+    doc.text(entry.date, 165, y - 2);
+    if (y > 270) { doc.addPage(); y = 40; }
   });
+
+  // Bottom decorative cup line
+  doc.addImage(trophy, "PNG", pageWidth / 2 - 5, y + 15, 10, 10);
+
   doc.save("Hall_of_Fame.pdf");
 }
+
 
 function resetHall() {
   if (confirm("⚠️ Clear all Hall of Fame records?")) {
