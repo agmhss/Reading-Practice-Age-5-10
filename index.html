@@ -2,41 +2,60 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Gtk Reading Program for Kids </title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Gtk Reading Program for Kids</title>
 <style>
   body {
     font-family: "Comic Sans MS", sans-serif;
     background: linear-gradient(135deg, #e8f0ff, #f9faff);
     text-align: center;
-    margin: 0;
-    padding: 0;
+    margin: 0; padding: 0;
   }
   header {
-    background: #4b8bff;
-    color: white;
-    padding: 15px;
-    font-size: 22px;
-    font-weight: bold;
+    background: #4b8bff; color: white;
+    padding: 15px; font-size: 22px; font-weight: bold;
   }
-  #main { margin-top: 30px; }
-  .sentence {
-    font-size: 24px;
-    margin: 15px;
-    color: #333;
-  }
+  #main { margin-top: 20px; }
+  .sentence { font-size: 26px; margin: 20px; color: #333; }
   button {
     font-size: 18px; margin: 10px; padding: 10px 20px;
     border: none; background: #4b8bff; color: white;
     border-radius: 10px; cursor: pointer;
   }
   button:hover { background: #3366cc; }
-  #scoreBoard {
-    font-size: 20px; margin: 20px; color: #333;
+  #scoreBoard { font-size: 20px; margin: 20px; color: #333; }
+  #voiceSelect { font-size: 16px; padding: 5px; border-radius: 6px; }
+  #imageBox {
+    width: 250px; height: 250px; margin: 10px auto;
+    border-radius: 20px; box-shadow: 0 0 10px #aaa; overflow: hidden;
+    position: relative;
   }
-  #voiceSelect {
-    font-size: 16px; margin-top: 10px;
-    padding: 5px; border-radius: 6px;
+  #imageBox img { width: 100%; height: 100%; object-fit: cover; }
+  #editBtn {
+    position: absolute; top: 5px; right: 5px;
+    background: rgba(0,0,0,0.6); color: #fff;
+    font-size: 14px; padding: 4px 8px; border-radius: 6px; cursor: pointer;
+    display: none;
+  }
+  #listenBtn.listening { background: #ff9900; }
+
+  /* Hall of Fame */
+  #hallOfFame {
+    margin: 40px auto; max-width: 550px;
+    background: #fff; border-radius: 15px; box-shadow: 0 0 8px #aaa;
+    padding: 15px;
+  }
+  #hallOfFame h2 { color: #4b8bff; margin-bottom: 10px; }
+  table { width: 100%; border-collapse: collapse; }
+  th, td {
+    border-bottom: 1px solid #ddd;
+    padding: 8px;
+  }
+  th { background: #f0f4ff; color: #333; }
+  tr:nth-child(even) { background: #f9f9f9; }
+  @media (max-width: 600px) {
+    .sentence { font-size: 22px; }
+    #imageBox { width: 180px; height: 180px; }
   }
 </style>
 </head>
@@ -45,9 +64,17 @@
 <header>📖 Gtk Reading Program for Kids</header>
 
 <div id="main">
+  <div id="imageBox">
+    <img id="pic" src="" alt="Word Image">
+    <div id="editBtn" onclick="adminChangeImage()">🖊️ Change</div>
+  </div>
+
   <div id="textArea" class="sentence"></div>
-  <button onclick="playReading()">🔊 Play</button>
-  <button onclick="nextSentence()">Next Line</button>
+
+  <button onclick="playReading()">🔊 Listen</button>
+  <button id="listenBtn" onclick="startListening()">🎤 Read Aloud</button>
+  <button onclick="nextSentence()">➡️ Next</button>
+
   <div id="scoreBoard">Score: <span id="score">0</span> / 10</div>
   <select id="voiceSelect">
     <option value="en-US">English (US)</option>
@@ -56,171 +83,240 @@
   </select>
 </div>
 
+<!-- Hidden file input for admin -->
+<input type="file" id="fileInput" accept="image/*" style="display:none" />
+
+<!-- Hall of Fame -->
+<div id="hallOfFame">
+  <h2>🏆 Hall of Fame</h2>
+  <table id="hallTable">
+    <thead><tr><th>Name</th><th>Class</th><th>Score</th><th>Date</th></tr></thead>
+    <tbody></tbody>
+  </table>
+  <button onclick="downloadPDF()">⬇️ Download as PDF</button>
+  <button onclick="resetHall()">🧹 Reset Hall of Fame</button>
+</div>
+
+<!-- Library for PDF generation -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
 <script>
-/* ------------ DATA: 100 WORD SETS ------------- */
+/* ------------ WORD SETS (Short Example) ------------ */
 const allExercises = [
-  ["apple", "green apple", "I like to eat green apple."],
+  ["apple", "green apple", "I like to eat a green apple."],
   ["ball", "red ball", "I can throw a red ball."],
   ["cat", "small cat", "I have a small cat."],
   ["dog", "brown dog", "The brown dog is running."],
   ["fish", "blue fish", "The blue fish swims fast."],
-  ["grape", "sweet grape", "I like to eat sweet grapes."],
-  ["pen", "blue pen", "I write with a blue pen."],
-  ["hat", "big hat", "He wears a big hat."],
-  ["sun", "bright sun", "The bright sun is shining."],
-  ["train", "long train", "The long train goes fast."],
   ["bird", "yellow bird", "The yellow bird can sing."],
-  ["chair", "wooden chair", "I sit on a wooden chair."],
-  ["flower", "red flower", "The red flower smells nice."],
-  ["tree", "tall tree", "The tall tree gives shade."],
   ["car", "blue car", "I saw a blue car."],
-  ["bus", "yellow bus", "The yellow bus stops here."],
-  ["boat", "small boat", "The small boat floats on water."],
-  ["shoe", "black shoe", "I wear a black shoe."],
-  ["cake", "sweet cake", "I ate a sweet cake."],
-  ["star", "bright star", "The bright star shines at night."],
-  ["frog", "green frog", "The green frog jumps high."],
-  ["cow", "white cow", "The white cow eats grass."],
-  ["book", "new book", "I read a new book."],
-  ["box", "big box", "The big box is heavy."],
-  ["cup", "tea cup", "She drinks tea in a cup."],
-  ["door", "wooden door", "He opened the wooden door."],
-  ["egg", "boiled egg", "I had a boiled egg."],
-  ["eye", "blue eye", "He has a blue eye."],
-  ["fan", "ceiling fan", "The ceiling fan spins fast."],
-  ["hand", "small hand", "The baby has a small hand."],
-  ["juice", "mango juice", "I like mango juice."],
-  ["kite", "red kite", "The red kite flies high."],
-  ["lamp", "bright lamp", "The bright lamp glows."],
-  ["leaf", "green leaf", "The green leaf is fresh."],
-  ["milk", "cold milk", "I drink cold milk."],
-  ["nest", "bird nest", "The bird built a nest."],
-  ["orange", "sweet orange", "I peeled a sweet orange."],
-  ["pencil", "sharp pencil", "I draw with a sharp pencil."],
-  ["rain", "heavy rain", "The heavy rain fell hard."],
-  ["shoe", "brown shoe", "He polished his brown shoe."],
-  ["table", "round table", "We sit around the round table."],
-  ["umbrella", "red umbrella", "She holds a red umbrella."],
-  ["vase", "flower vase", "He placed roses in the vase."],
-  ["watch", "digital watch", "I wear a digital watch."],
-  ["yarn", "soft yarn", "She knits with soft yarn."],
-  ["zebra", "striped zebra", "The striped zebra runs fast."],
-  ["lion", "wild lion", "The wild lion roars loudly."],
-  ["tiger", "strong tiger", "The strong tiger hunts."],
-  ["monkey", "funny monkey", "The funny monkey jumps."],
   ["elephant", "big elephant", "The big elephant walks slowly."],
-  ["camel", "tall camel", "The tall camel walks in sand."],
-  ["deer", "brown deer", "The brown deer runs fast."],
-  ["rabbit", "white rabbit", "The white rabbit eats carrots."],
-  ["peacock", "beautiful peacock", "The beautiful peacock dances."],
-  ["butterfly", "colorful butterfly", "The colorful butterfly flies."],
-  ["rainbow", "seven-color rainbow", "The seven-color rainbow is pretty."],
-  ["mountain", "high mountain", "We climbed a high mountain."],
-  ["river", "long river", "The long river flows fast."],
-  ["bridge", "old bridge", "The old bridge is strong."],
-  ["road", "narrow road", "The narrow road leads home."],
-  ["school", "big school", "I go to a big school."],
-  ["teacher", "kind teacher", "The kind teacher smiles."],
-  ["student", "smart student", "The smart student studies hard."],
-  ["chalk", "white chalk", "He writes with white chalk."],
-  ["desk", "clean desk", "My clean desk is ready."],
-  ["book", "open book", "The open book has pictures."],
-  ["window", "glass window", "The glass window is clear."],
-  ["wall", "blue wall", "The blue wall looks nice."],
-  ["garden", "green garden", "We played in the green garden."],
-  ["plant", "small plant", "The small plant grows fast."],
-  ["clock", "round clock", "The round clock shows time."],
-  ["bell", "loud bell", "The loud bell rings."],
-  ["bread", "fresh bread", "We ate fresh bread."],
-  ["banana", "yellow banana", "The yellow banana is tasty."],
-  ["pot", "clay pot", "The clay pot is full of water."],
-  ["drum", "big drum", "The big drum makes sound."],
-  ["mirror", "clean mirror", "I looked into a clean mirror."],
-  ["pillow", "soft pillow", "I sleep on a soft pillow."],
-  ["blanket", "warm blanket", "The warm blanket keeps me cozy."],
-  ["toy", "new toy", "The child plays with a new toy."],
-  ["bottle", "water bottle", "The water bottle is full."],
-  ["plate", "white plate", "The white plate is clean."],
-  ["basket", "fruit basket", "The fruit basket has apples."],
-  ["key", "golden key", "The golden key opens the door."],
-  ["lock", "silver lock", "He closed the silver lock."],
-  ["camera", "black camera", "He took photos with a black camera."],
-  ["phone", "smart phone", "I called my friend on the smart phone."],
-  ["laptop", "new laptop", "I type on my new laptop."],
-  ["mouse", "computer mouse", "The computer mouse is on the desk."],
-  ["bag", "school bag", "I packed my school bag."],
-  ["pencil box", "red pencil box", "The red pencil box has erasers."],
-  ["eraser", "white eraser", "I use a white eraser."],
-  ["balloon", "pink balloon", "The pink balloon floats up."],
-  ["cupcake", "chocolate cupcake", "I ate a chocolate cupcake."],
-  ["ice cream", "vanilla ice cream", "I love vanilla ice cream."],
-  ["cookie", "chocolate cookie", "She baked chocolate cookies."],
-  ["sand", "soft sand", "We walked on soft sand."],
-  ["cloud", "white cloud", "The white cloud moves slowly."],
-  ["moon", "round moon", "The round moon shines bright."],
-  ["starfish", "orange starfish", "The orange starfish is pretty."],
-  ["leaf", "fresh leaf", "The fresh leaf looks green."]
+  ["lion", "wild lion", "The wild lion roars loudly."],
+  ["zebra", "striped zebra", "The striped zebra runs fast."]
 ];
 
-/* ------------ SELECT RANDOM 10 ------------- */
 const exercises = allExercises.sort(() => 0.5 - Math.random()).slice(0, 10);
 
 let currentIndex = 0;
 let sentenceStage = 0;
 let score = 0;
+let adminMode = false;
 
-/* ------------ DOM ------------- */
 const textArea = document.getElementById("textArea");
 const scoreDisplay = document.getElementById("score");
 const voiceSelect = document.getElementById("voiceSelect");
+const imageBox = document.getElementById("pic");
+const listenBtn = document.getElementById("listenBtn");
+const editBtn = document.getElementById("editBtn");
+const fileInput = document.getElementById("fileInput");
 
-/* ------------ FUNCTIONS ------------- */
+/* ------------ IMAGE MAP ------------ */
+let imageMap = JSON.parse(localStorage.getItem("gtkImageMap") || "{}");
+
+function loadImage(keyword) {
+  const key = keyword.toLowerCase();
+  if (imageMap[key]) {
+    imageBox.src = imageMap[key];
+  } else {
+    imageBox.src = `images/${key}.jpg`;
+  }
+}
+
+/* ------------ ADMIN IMAGE CHANGE ------------ */
+function adminChangeImage() { fileInput.click(); }
+fileInput.addEventListener("change", () => {
+  const file = fileInput.files[0];
+  if (file) {
+    const reader = new FileReader();
+    reader.onload = e => {
+      const key = exercises[currentIndex][0].toLowerCase();
+      imageMap[key] = e.target.result;
+      localStorage.setItem("gtkImageMap", JSON.stringify(imageMap));
+      imageBox.src = e.target.result;
+      alert(`✅ Image for "${key}" updated!`);
+    };
+    reader.readAsDataURL(file);
+  }
+});
+
+/* ------------ ADMIN TOGGLE ------------ */
+document.addEventListener("keydown", e => {
+  if (e.ctrlKey && e.shiftKey && e.key === "A") {
+    adminMode = !adminMode;
+    editBtn.style.display = adminMode ? "block" : "none";
+    alert(adminMode ? "🧑‍🏫 Admin mode ON" : "🔒 Admin mode OFF");
+  }
+});
+
+/* ------------ SPEECH SYNTHESIS ------------ */
+function playReading() {
+  const utter = new SpeechSynthesisUtterance(textArea.textContent);
+  utter.rate = 0.8; utter.lang = voiceSelect.value;
+  window.speechSynthesis.speak(utter);
+}
+
+/* ------------ SPEECH RECOGNITION ------------ */
+let recognition;
+if ('webkitSpeechRecognition' in window) {
+  recognition = new webkitSpeechRecognition();
+  recognition.lang = 'en-US';
+  recognition.onstart = () => {
+    listenBtn.classList.add("listening");
+    listenBtn.textContent = "🎤 Listening...";
+  };
+  recognition.onend = () => {
+    listenBtn.classList.remove("listening");
+    listenBtn.textContent = "🎤 Read Aloud";
+  };
+  recognition.onresult = (event) => {
+    const spoken = event.results[0][0].transcript.toLowerCase().trim();
+    const expected = textArea.textContent.toLowerCase().replace(/[^\w\s]/gi, '');
+    if (spoken.includes(expected.split(" ")[0])) {
+      score++;
+      scoreDisplay.textContent = score;
+      alert("✅ Great job!");
+      nextSentence();
+    } else {
+      alert("❌ Try again!");
+    }
+  };
+} else alert("Speech Recognition not supported in this browser.");
+
+function startListening() { if (recognition) recognition.start(); }
+
+/* ------------ GAME FLOW ------------ */
 function loadExercise() {
   sentenceStage = 0;
-  textArea.textContent = exercises[currentIndex][sentenceStage];
+  const current = exercises[currentIndex];
+  textArea.textContent = current[sentenceStage];
+  loadImage(current[0]);
+  playReading();
 }
 
 function nextSentence() {
+  const current = exercises[currentIndex];
   sentenceStage++;
   if (sentenceStage < 3) {
-    textArea.textContent = exercises[currentIndex][sentenceStage];
+    textArea.textContent = current[sentenceStage];
     playReading();
-    setTimeout(() => nextSentence(), 4000);
   } else {
-    score++;
-    scoreDisplay.textContent = score;
     if (currentIndex < exercises.length - 1) {
       currentIndex++;
-      setTimeout(loadExercise, 3000);
+      setTimeout(loadExercise, 1500);
     } else {
       endTest();
     }
   }
 }
 
-function playReading() {
-  const utterance = new SpeechSynthesisUtterance(textArea.textContent);
-  utterance.rate = 0.7;
-  utterance.pitch = 1;
-  utterance.lang = voiceSelect.value;
-  window.speechSynthesis.speak(utterance);
+/* ------------ HALL OF FAME ------------ */
+function showHallOfFame() {
+  const fameTable = document.querySelector("#hallTable tbody");
+  fameTable.innerHTML = "";
+  const hallData = JSON.parse(localStorage.getItem("gtkHallOfFame") || "[]");
+  hallData.sort((a,b) => b.score - a.score);
+  hallData.forEach(entry => {
+    const tr = document.createElement("tr");
+    tr.innerHTML = `<td>${entry.name}</td><td>${entry.className}</td><td>${entry.score}</td><td>${entry.date}</td>`;
+    fameTable.appendChild(tr);
+  });
 }
 
+/* ------------ SAVE ------------ */
+function saveToHallOfFame(name, className, score) {
+  const hallData = JSON.parse(localStorage.getItem("gtkHallOfFame") || "[]");
+  const date = new Date().toLocaleDateString();
+  hallData.push({ name, className, score, date });
+  localStorage.setItem("gtkHallOfFame", JSON.stringify(hallData));
+  showHallOfFame();
+}
+
+/* ------------ END TEST ------------ */
 function endTest() {
   textArea.textContent = `🎉 Great job! You scored ${score} out of 10!`;
-  document.querySelectorAll("button, select").forEach(btn => btn.style.display = "none");
-  const restartBtn = document.createElement("button");
-  restartBtn.textContent = "🔁 Restart Test";
-  restartBtn.onclick = () => location.reload();
-  document.body.appendChild(restartBtn);
+  imageBox.src = "images/congrats.jpg";
+  document.querySelectorAll("button, select").forEach(el => el.style.display = "none");
+
+  const form = document.createElement("div");
+  form.innerHTML = `
+    <h3>Enter your details</h3>
+    <input id="playerName" placeholder="Name" style="padding:5px; margin:5px;">
+    <input id="playerClass" placeholder="Class" style="padding:5px; margin:5px;">
+    <button onclick="submitScore()">🏆 Submit to Hall of Fame</button>
+  `;
+  document.body.appendChild(form);
 }
 
-/* ------------ INIT ------------- */
+function submitScore() {
+  const name = document.getElementById("playerName").value.trim();
+  const className = document.getElementById("playerClass").value.trim();
+  if (!name || !className) return alert("Please enter name and class!");
+  saveToHallOfFame(name, className, score);
+  document.body.querySelector("div h3").parentElement.remove();
+}
+
+/* ------------ PDF DOWNLOAD ------------ */
+async function downloadPDF() {
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF();
+  doc.setFontSize(16);
+  doc.text("Gtk Reading Program - Hall of Fame", 20, 20);
+  doc.setFontSize(12);
+
+  const hallData = JSON.parse(localStorage.getItem("gtkHallOfFame") || "[]");
+  let y = 40;
+  doc.text("Name", 20, y);
+  doc.text("Class", 70, y);
+  doc.text("Score", 120, y);
+  doc.text("Date", 160, y);
+  y += 10;
+
+  hallData.sort((a,b) => b.score - a.score).forEach(entry => {
+    doc.text(entry.name, 20, y);
+    doc.text(entry.className, 70, y);
+    doc.text(entry.score.toString(), 120, y);
+    doc.text(entry.date, 160, y);
+    y += 10;
+    if (y > 270) { doc.addPage(); y = 20; }
+  });
+
+  doc.save("Hall_of_Fame.pdf");
+}
+
+/* ------------ RESET ------------ */
+function resetHall() {
+  if (confirm("⚠️ Are you sure you want to clear all Hall of Fame records?")) {
+    localStorage.removeItem("gtkHallOfFame");
+    alert("Hall of Fame cleared.");
+    showHallOfFame();
+  }
+}
+
+/* ------------ INIT ------------ */
 document.addEventListener("DOMContentLoaded", () => {
   loadExercise();
-  playReading();
+  showHallOfFame();
 });
 </script>
-
 </body>
 </html>
