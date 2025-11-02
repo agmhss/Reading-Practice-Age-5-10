@@ -206,6 +206,9 @@ function playReading(){
   utter.onend=()=>{ imageBox.classList.remove("reading"); loadImage(exercises[currentIndex][0]); };
   window.speechSynthesis.cancel();
   window.speechSynthesis.speak(utter);
+imageBox.onerror = () => {
+  imageBox.src = "images/reader_lion.png";
+};
 }
 
 /* ------------ LISTEN ------------ */
