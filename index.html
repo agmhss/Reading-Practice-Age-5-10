@@ -30,11 +30,24 @@ button:hover { background: #3366cc; }
 #scoreBoard { font-size: 20px; margin: 20px; color: #333; }
 #voiceSelect { font-size: 16px; padding: 5px; border-radius: 6px; }
 #imageBox {
-  width: 250px; height: 250px; margin: 10px auto;
-  border-radius: 20px; box-shadow: 0 0 10px #aaa;
-  overflow: hidden; position: relative;
+  width: 280px;
+  height: 280px;
+  margin: 10px auto;
+  border-radius: 20px;
+  box-shadow: 0 0 10px #aaa;
+  background: #fff;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  overflow: hidden;
 }
-#imageBox img { width: 100%; height: 100%; object-fit: cover; }
+#imageBox img {
+  width: auto;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+}
+
 #editLabel {
   font-size: 14px; margin-top: 5px; color: #4b8bff; cursor: pointer;
   text-decoration: underline;
@@ -94,8 +107,9 @@ tr:nth-child(even) { background: #f9f9f9; }
 <!-- Main Reading Area -->
 <div id="main" style="display:none;">
   <div id="imageBox">
-    <img id="pic" src="images/reader_lion.png" alt="Reader Lion">
-  </div>
+  <img id="pic" src="images/reader_lion.png" alt="Reader Lion">
+</div>
+
   <div id="editLabel" onclick="adminChangeImage()">🖊 Insert/Change Picture</div>
 
   <div id="textArea" class="sentence"></div>
